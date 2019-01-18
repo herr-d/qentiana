@@ -6,8 +6,8 @@ from bokeh.plotting import figure, save, output_file
 from bokeh.models import Legend
 
 def logical_error_probability(d, p):
-    # 8 steps per error correction cycle * 3 qubits (on average)
-    p = 1 - (1-p)**(8*3)
+    # 8 steps per error correction cycle * 5 qubits (on average) -> treat errors as uncorrelated
+    p = 1 - (1-p)**(8*5)
 
     # use equation from fowlers paper on logical error rate
     tmp = d*math.factorial(d) / (math.factorial(int((d+1)/2) - 1)
@@ -34,7 +34,7 @@ def number_of_physical_qubits(distance, space):
     # only looking at data qubits
     return space*distance*distance
 
-def calculate_total(volume, space, total_failure_rate, p_err = 0.009):
+def calculate_total(volume, space, total_failure_rate, p_err = 0.005):
     P_1 = logical_error_from_volume(volume, total_failure_rate)
     dist = calc_distance(total_failure_rate, p_err, volume)
     return dist, number_of_physical_qubits(dist, space)
@@ -43,11 +43,12 @@ def calculate_total(volume, space, total_failure_rate, p_err = 0.009):
 
 
 def RGB_map(data):
-    # data < 0 -> volume optimized is better than space optimized
-    if data <= 0:
+    # data > 1 -> volume optimized is better than space optimized
+    if data > 1:
         return 255,255,255
     else: # gray area space optimized is better
-        return 100,100,100
+        add = int(data*200)
+        return (add, add, add)
 
 
 def plot_data(v,s,data):
@@ -60,9 +61,9 @@ def plot_data(v,s,data):
         for j in range(len(s)):
             # RED, GREEN, BLUE
             view[i, j, 0], view[i, j, 1], view[i, j, 2] = RGB_map(data[i,j]);
-            view[i, j, 3] = 255 # ALPHA
+            view[i, j, 3] = 180 # ALPHA
 
-    p = figure(x_range=(s[0],s[-1]), y_range=(v[0],v[-1]))
+    p = figure(x_range=(s[0],s[-1]), y_range=(v[0],v[-1]),  y_axis_type="log")
     p.image_rgba(image=[img], x=s[0], y=v[0], dw=s[-1]-s[0], dh=v[-1]-v[0])
     
     # styling
@@ -79,7 +80,7 @@ def plot_data(v,s,data):
     items += [("space-optimal has fewer qubits",[p.circle(i,i,color="gray",size=20)])]
     items += [("volume-optimal has fewer qubits",[p.circle(i,i,color="white",size=20)])]
     p.add_layout(Legend(items=items))
-    p.legend.location = "top_right"
+    p.legend.location = "bottom_right"
 
     output_file("volume_vs_space.html", title="total qubit overhead: volume optimal vs space optimal")
     save(p)
@@ -95,7 +96,8 @@ def main():
     space_min = 10
 
     # generate parameter space for scaling factors
-    v = np.linspace(1, 1000,100) # scaling factor volume
+    #v = np.linspace(1, 1000,100) # scaling factor volume
+    v = np.logspace(0,10,100) # log spaced volume scaling factor
     s = np.linspace(1,10,100) # scaling factor space
 
     #dist1, physicalqubits1 = calculate_total(volume1, space1, total_failure_rate)
@@ -104,8 +106,7 @@ def main():
         for j in range(len(s)):
             dist1, physicalqubits1 = calculate_total(volume_min, int(space_min*s[j]+0.5), total_failure_rate)
             dist2, physicalqubits2 = calculate_total(int(volume_min*v[i]+0.5), space_min, total_failure_rate)
-            data[i,j] = physicalqubits1 - physicalqubits2
-            #print((v_,s_,dist1 ,dist2,physicalqubits1,physicalqubits2))
+            data[i,j] = physicalqubits2/physicalqubits1
     plot_data(v,s,data)
     return
 
