@@ -11,9 +11,10 @@
             //assume base = 10
             var ret = new Array(num);
 
+            var delta = (stop - start)/num;
             for(var i=0; i<num; i++)
             {
-                ret[i] = Math.pow(10, start + stop/i);
+                ret[i] = Math.pow(10, start + delta * i);
             }
 
             return ret;
@@ -23,9 +24,10 @@
         {
             var ret = new Array(num);
 
+            var delta = (stop - start)/num;
             for(var i=0; i<num; i++)
             {
-                ret[i] = start + stop/i;
+                ret[i] = start + delta * i;
             }
 
             return ret;
@@ -55,10 +57,28 @@
             {
                 return local_factorial_cache[n+""];
             }
-            return local_factorial_cache[n+""] = local_factorial(n-1) * n;
+
+            var part = 1;
+            for(var fn = 2; fn <=n; fn++)
+            {
+                if (local_factorial_cache[fn+""] > 0)
+                {
+                    part = local_factorial_cache[fn+""];
+                }
+                else
+                {
+                    part = part * fn;
+                    local_factorial_cache[fn+""] = part;
+                }
+            } 
+            local_factorial_cache[n+""] = part;
+
+            return local_factorial_cache[n+""];
         }
 
         local_factorial(100);
+
+        console.log(local_factorial_cache);
         </script>
 
         <script>
@@ -69,6 +89,9 @@
             var global_v = local_logspace(0, 6, 100);
             // scaling factor space
             var global_s = local_linspace(1, 3, 100);
+
+            console.log(global_v);
+            console.log(global_s);
 
             var total_failure_rate = 0.01;
             // data for minimum values
@@ -180,7 +203,7 @@
                         {
                             console.log("SOMETHING WENT WRONG!!!");
                         }
-                        data[i, j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
+                        data[i][j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
                     }
                 }
 
