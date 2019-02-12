@@ -88,7 +88,7 @@
             */
             var nr_items = 100;
             // log spaced volume scaling factor
-            var global_v = local_logspace(0, 4, nr_items);
+            var global_v = local_logspace(0, 6, nr_items);
             // scaling factor space
             var global_s = local_linspace(1, 3, nr_items);
 
@@ -98,7 +98,7 @@
             var space_min = 7;
             var phys_error_rate = 0.008;
 
-            function logical_error_probability(d, p_step)
+            function logical_error_probability(d, p_cycle)
             {
                 /*
                     Use equation from fowlers paper on logical error rate
@@ -108,20 +108,20 @@
                 var p2 = local_factorial((d+1)/2);
                 var tmp =  p0 / ( p1 * p2 );
 
-                return tmp * Math.pow(p_step, (d+1)/2);
+                return tmp * Math.pow(p_cycle, (d+1)/2);
             }
             
-            function calc_distance(p_err_out, p_step, spacetime_volume)
+            function calc_distance(p_err_out, p_cycle, spacetime_volume)
             {
                 // Find the lowest distance for which the error rate of the whole circuit
-                // is given by less than p_err_out. Given an error rate per step of p_step.  
+                // is given by less than p_err_out. Given an error rate per step of p_cycle.  
                 // python range is < or <=?
                 var min_dist = 3;
-                var max_dist = 50;
+                var max_dist = 99;
 
                 for (var d = min_dist; d <= max_dist; d++)
                 {
-                    var log_err_prob = logical_error_probability(d, p_step);
+                    var log_err_prob = logical_error_probability(d, p_cycle);
                     var val_to_compare = 1 - Math.pow(( 1 - log_err_prob), spacetime_volume);
 
                     if(p_err_out > val_to_compare)
@@ -134,21 +134,15 @@
                 return -1;
             }
 
-            function logical_error_from_volume(volume, total_failure_rate)
-            {
-                return Math.pow(total_failure_rate, 1./volume);
-            }    
-
             function number_of_physical_qubits(distance, space)
             {
                 //  only looking at data qubits
                 return space * distance * distance;
             }
 
-            function calculate_total(volume, space, total_failure_rate, p_step_err = 0.02)
+            function calculate_total(volume, space, total_failure_rate, p_cycle_err)
             {
-                var P_1 = logical_error_from_volume(volume, total_failure_rate);
-                var dist = calc_distance(P_1, p_step_err, volume);
+                var dist = calc_distance(total_failure_rate, p_cycle_err, volume);
 
                 if(dist == -1)
                 {
@@ -171,18 +165,16 @@
                 {
                     for(var j=0; j < global_s.length; j++)
                     {
-                        var space_param = Math.round(space_min * global_s[j] + 0.5);
+                        var space_param = Math.round(space_min * global_s[j]);
                         var ret_1 = calculate_total(volume_min, space_param, total_failure_rate, p_err);
 
-                        var vol_param = Math.round(volume_min * global_v[i] + 0.5);
+                        var vol_param = Math.round(volume_min * global_v[i]);
                         var ret_2 = calculate_total(vol_param, space_min, total_failure_rate, p_err);
 
                         if ((ret_1 == "ERROR") || (ret_2 == "ERROR"))
                         {
                             console.log("SOMETHING WENT WRONG!!!");
                         }
-
-                        //data[i][j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
 
                         var ratio = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
 
@@ -246,8 +238,7 @@
 
         <script>
             var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-            // console.log(data)
-
+            console.log(calc_distance(0.01,0.008,1000))
             /*
                 D3
             */
@@ -273,12 +264,12 @@
                 .orient("bottom");
 
             var yScale = d3.scale.log()
-                .domain([global_v[global_v.length-1], global_v[0]])
-                .range([0, global_v.length * itemSize]);
+                .domain([global_v[0],global_v[global_v.length-1]])
+                .range([global_v.length * itemSize,0]);
 
             var yAxis = d3.svg.axis()
                 .scale(yScale)
-                .ticks(4, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
+                .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
                 .orient("left");
 
             var svg = d3.select('.plot')
@@ -293,8 +284,6 @@
                 .data(data)
                 .enter().append('g').append('rect')
                 .attr('class', 'cell')
-                //.style("stroke", function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";})
-                //.style("stroke-width", 2)
                 .attr('width', cellSize)
                 .attr('height', cellSize)
                 .attr('y', function(d) { return yScale(d.y); })

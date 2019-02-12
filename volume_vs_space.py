@@ -12,13 +12,13 @@ from bokeh.io import export_svgs
 
 def logical_error_probability(d, p_step):
     # use equation from fowlers paper on logical error rate
-    tmp = d*math.factorial(d) / (math.factorial(int((d+1)/2) - 1)
+    tmp = 1.*d*math.factorial(d) / (math.factorial(int((d+1)/2) - 1)
         * math.factorial(int((d+1)/2)))
-    return tmp * p_step**int(d+1)/2
+    return tmp * p_step**(int(d+1)/2)
 
 
 def calc_distance(p_err_out, p_step, spacetime_volume,
-    min_dist = 3, max_dist = 50):
+    min_dist = 3, max_dist = 99):
     """
     Find the lowest distance for which the error rate of the whole circuit
     is given by less than p_err_out. Given an error rate per step of p_step.  
@@ -28,17 +28,13 @@ def calc_distance(p_err_out, p_step, spacetime_volume,
             return d
     raise RuntimeError("Could not find a suitable distance")
 
-def logical_error_from_volume(volume, total_failure_rate):
-    return total_failure_rate**(1./volume)
-
 
 def number_of_physical_qubits(distance, space):
     # only looking at data qubits
     return space*distance*distance
 
-def calculate_total(volume, space, total_failure_rate, p_step_err = 0.02):
-    P_1 = logical_error_from_volume(volume, total_failure_rate)
-    dist = calc_distance(P_1, p_step_err, volume)
+def calculate_total(volume, space, total_failure_rate, p_step_err):
+    dist = calc_distance(total_failure_rate, p_step_err, volume)
     return dist, number_of_physical_qubits(dist, space)
 
 
@@ -96,7 +92,7 @@ def plot_data(v,s,data):
     #slider error rate
     #callback = CustomJS(args=dict(p=p), code="""p.reset.emit()""")
     #callback = CustomJS(args=dict(p=p), code=""" """)
-    error_rate = Slider(title = "per cycle error", value=0.001, start=0.001, end=0.02, step=0.001, format="0[.]000")#,callback=callback)
+    error_rate = Slider(title = "per cycle error", value=0.008, start=0.001, end=0.1, step=0.001, format="0[.]000")#,callback=callback)
     error_rate.on_change('value',update_error)
 
     #slider min_volume
@@ -165,7 +161,7 @@ total_failure_rate = 0.01
 # data for minimum values
 volume_min = 23*11
 space_min = 7
-phys_error_rate = 0.001
+phys_error_rate = 0.008
 
 img = None # storage for image
 p = None # figure
