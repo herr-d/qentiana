@@ -1,5 +1,20 @@
+<!DOCTYPE html>
 <html>
     <head>
+
+    <style>
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+      }
+
+      .axis text {
+          font-family: sans-serif;
+          font-size: 11px;
+      }
+    </style>
         <script src="http://d3js.org/d3.v3.js"></script>
 
         <script>
@@ -46,9 +61,6 @@
         var local_factorial_cache = {};
         function local_factorial (n)
         {
-            // console.log(n);
-            // return 1;
-
             if (n == 0 || n == 1)
             {
                 return 1;
@@ -78,7 +90,6 @@
 
         local_factorial(100);
 
-        console.log(local_factorial_cache);
         </script>
 
         <script>
@@ -86,19 +97,16 @@
                 Parameters
             */
             // log spaced volume scaling factor
-            var global_v = local_logspace(0, 6, 100);
+            var global_v = local_logspace(0, 4, 100);
             // scaling factor space
             var global_s = local_linspace(1, 3, 100);
-
-            console.log(global_v);
-            console.log(global_s);
 
             var total_failure_rate = 0.01;
             // data for minimum values
             var volume_min = 23 * 11;
             var space_min = 7;
             //
-            var phys_error_rate = 0.001;
+            var phys_error_rate = 0.008;
 
             function logical_error_probability(d, p_step)
             {
@@ -187,7 +195,8 @@
             function gen_data(total_failure_rate, volume_min, space_min, p_err)
             {
                 // 2D Array
-                var data = create_2d_array(global_v.length, global_s.length);
+                //var data = create_2d_array(global_v.length, global_s.length);
+                var data = new Array();
 
                 for (var i=0; i<global_v.length; i++)
                 {
@@ -203,60 +212,19 @@
                         {
                             console.log("SOMETHING WENT WRONG!!!");
                         }
-                        data[i][j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
+
+                        //data[i][j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
+                        data.push({
+                            x: global_s[j],
+                            y: global_v[i],
+                            value: Math.round(100*ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"])
+                        })
                     }
                 }
 
                 return data;
             }
 
-            // function update_data()
-            // {
-            //     var data = gen_data(total_failure_rate,volume_min,space_min, phys_error_rate);
-
-            //     // view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
-            //     // # i is vertical coordinate
-            //     // # j is horizontal coordinate
-            //     for (var i=0; i<global_v.length; i++)
-            //     {
-            //         for (var j=0; j<global_s.length; j++)
-            //         {
-            //             // view[i, j, 0]
-            //             // view[i, j, 1]
-            //             // view[i, j, 2] = RGB_map(data[i,j]);
-            //             // ALPHA
-            //             // view[i, j, 3] = 180; 
-            //             view[i, j] = RGB_map(data[i,j]);//without alpha
-            //         }
-            //     }
-
-                // source.data = {'image': [img]}
-            // }
-
-            // function plot_data(v, s, data)
-            // {
-            //     // global img, p, source
-            //     img = np.empty((len(v),len(s)), dtype=np.uint32)
-            //     view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
-
-            //     // # i is vertical coordinate
-            //     // # j is horizontal coordinate
-            //     for (var i=0; i< v.length; i++)
-            //     {
-            //         for (var j=0; j< s.length; j++)
-            //         {
-            //             view[i, j, 0], view[i, j, 1], view[i, j, 2] = RGB_map(data[i,j]);
-            //             view[i, j, 3] = 180 
-            //             // # ALPHA
-            //         }
-            //     }
-
-            //     p = figure(plot_height=400, plot_width=400, x_range=(s[0],s[-1]), y_range=(v[0],v[-1]), y_axis_type="log")
-
-            //     var source = new Bokeh.ColumnDataSource({'image': [img]})
-            //     p.image_rgba(image='image', x=s[0], y=v[0], dw=s[-1]-s[0], dh=v[-1]-v[0],source = source)
-                
-            // }
         </script>
     </head>
     <body>
@@ -282,34 +250,70 @@
 
         <script>
             var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-            // plot_data(global_v, global_s, data);
+            console.log(data)
 
             /*
                 D3
             */
-            // var itemSize = 100;
-            // var cellSize = itemSize - 1;
-            // var margin = {top: 120, right: 20, bottom: 20, left: 110};
+            var itemSize = 100;
+            var cellSize = itemSize - 1;
+            var margin = {top: 120, right: 20, bottom: 20, left: 110};
             
-            // var width = 750 - margin.right - margin.left;
-            // var height = 300 - margin.top - margin.bottom;
+            var width = 750 - margin.right - margin.left;
+            var height = 500 - margin.top - margin.bottom;
 
-            // var svg = d3.select('.plot')
-            //     .append("svg")
-            //     .attr("width", width + margin.left + margin.right)
-            //     .attr("height", height + margin.top + margin.bottom)
-            //     .append("g")
-            //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            // var cells = svg.selectAll('rect')
-            //     .data(data)
-            //     .enter().append('g').append('rect')
-            //     .attr('class', 'cell')
-            //     .attr('width', cellSize)
-            //     .attr('height', cellSize)
-            //     .attr('y', function(d) { return yScale(d.y); })
-            //     .attr('x', function(d) { return xScale(d.x); })
-            //     .attr('fill', function(d) { return colorScale(d.rgb_color); });
+            var xScale = d3.scale.linear()
+                .domain([global_s[0],global_s[global_s.length-1]])
+                .range([0,width]);
+
+            var xAxis = d3.svg.axis()
+                .scale(xScale);
+
+            var yScale = d3.scale.log()
+                .domain([global_v[0],global_v[global_v.length-1]])
+                .range([0,height]);
+
+            var yAxis = d3.svg.axis()
+                .scale(yScale)
+                .orient("left");
+
+
+            var svg = d3.select('.plot')
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+            var cells = svg.selectAll('rect')
+                 .data(data)
+                 .enter().append('g').append('rect')
+                 .attr('class', 'cell')
+                 .attr('width', cellSize)
+                 .attr('height', cellSize)
+                 .attr('y', function(d) { return yScale(d.y); })
+                 .attr('x', function(d) { return xScale(d.x); })
+                 .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .selectAll('text')
+                .attr('font-weight', 'normal');
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .call(xAxis)
+                .selectAll('text')
+                .attr('font-weight', 'normal')
+                .style("text-anchor", "start")
+                .attr("dx", ".8em")
+                .attr("dy", ".5em")
+                .attr("transform", function (d) {
+                    return "rotate(-65)";
+                });
         </script>
 
         <script>
