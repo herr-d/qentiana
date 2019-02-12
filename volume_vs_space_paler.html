@@ -1,111 +1,101 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="main.css"> 
 
-    <style>
-      .axis path,
-      .axis line {
-        fill: none;
-        stroke: black;
-        shape-rendering: crispEdges;
-      }
-
-      .axis text {
-          font-family: sans-serif;
-          font-size: 11px;
-      }
-    </style>
         <script src="http://d3js.org/d3.v3.js"></script>
+        <script src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
 
         <script>
-        /*
-            Utility functions
-        */
-        function local_logspace(start, stop, num=50)
-        {
-            //assume base = 10
-            var ret = new Array(num);
-
-            var delta = (stop - start)/num;
-            for(var i=0; i<num; i++)
+            /*
+                Utility functions
+            */
+            function local_logspace(start, stop, num=50)
             {
-                ret[i] = Math.pow(10, start + delta * i);
+                //assume base = 10
+                var ret = new Array(num);
+
+                var delta = (stop - start)/num;
+                for(var i=0; i<num; i++)
+                {
+                    ret[i] = Math.pow(10, start + delta * i);
+                }
+
+                return ret;
+            }
+            
+            function local_linspace(start, stop, num=50)
+            {
+                var ret = new Array(num);
+
+                var delta = (stop - start)/num;
+                for(var i=0; i<num; i++)
+                {
+                    ret[i] = start + delta * i;
+                }
+
+                return ret;
             }
 
-            return ret;
-        }
-        
-        function local_linspace(start, stop, num=50)
-        {
-            var ret = new Array(num);
-
-            var delta = (stop - start)/num;
-            for(var i=0; i<num; i++)
+            function create_2d_array(dim1, dim2)
             {
-                ret[i] = start + delta * i;
+                var ret = new Array(dim1);
+                for(var i=0; i<dim1; i++)
+                {
+                    ret[i] = new Array(dim2);
+                }
+                return ret;
             }
 
-            return ret;
-        }
+            var local_factorial_cache = {};
+            function local_factorial (n)
+            {
+                if (n == 0 || n == 1)
+                {
+                    return 1;
+                }
+                if (local_factorial_cache[n+""] > 0)
+                {
+                    return local_factorial_cache[n+""];
+                }
 
-        function create_2d_array(dim1, dim2)
-        {
-            var ret = new Array(dim1);
-            for(var i=0; i<dim1; i++)
-            {
-                ret[i] = new Array(dim2);
-            }
-            return ret;
-        }
+                var part = 1;
+                for(var fn = 2; fn <=n; fn++)
+                {
+                    if (local_factorial_cache[fn+""] > 0)
+                    {
+                        part = local_factorial_cache[fn+""];
+                    }
+                    else
+                    {
+                        part = part * fn;
+                        local_factorial_cache[fn+""] = part;
+                    }
+                } 
+                local_factorial_cache[n+""] = part;
 
-        var local_factorial_cache = {};
-        function local_factorial (n)
-        {
-            if (n == 0 || n == 1)
-            {
-                return 1;
-            }
-            if (local_factorial_cache[n+""] > 0)
-            {
                 return local_factorial_cache[n+""];
             }
 
-            var part = 1;
-            for(var fn = 2; fn <=n; fn++)
-            {
-                if (local_factorial_cache[fn+""] > 0)
-                {
-                    part = local_factorial_cache[fn+""];
-                }
-                else
-                {
-                    part = part * fn;
-                    local_factorial_cache[fn+""] = part;
-                }
-            } 
-            local_factorial_cache[n+""] = part;
-
-            return local_factorial_cache[n+""];
-        }
-
-        local_factorial(100);
-
+            // precompute values in cache
+            local_factorial(100);
         </script>
 
         <script>
             /*
                 Parameters
             */
+            var nr_items = 100;
             // log spaced volume scaling factor
-            var global_v = local_logspace(0, 4, 100);
+            var global_v = local_logspace(0, 4, nr_items);
             // scaling factor space
-            var global_s = local_linspace(1, 3, 100);
+            var global_s = local_linspace(1, 3, nr_items);
 
             var total_failure_rate = 0.01;
             // data for minimum values
             var volume_min = 23 * 11;
             var space_min = 7;
-            //
             var phys_error_rate = 0.008;
 
             function logical_error_probability(d, p_step)
@@ -210,23 +200,45 @@
                 return data;
             }
 
+            function storeSVG(svg_container)
+            {
+                xmlString = serializer.serializeToString(svg_container.node());
+                imgData = 'data:image/svg+xml;base64,' + btoa(xmlString);
+            }
+
+            function save_as_svg()
+            {
+                var svg_data = document.getElementsByClassName("plot")[0].innerHTML;//put id of your svg element here
+
+                var head = '<svg title="graph" version="1.1" xmlns="http://www.w3.org/2000/svg">';
+
+                //if you have some additional styling like graph edges put them inside <style> tag
+                //this font is too small
+                var style = '<style>circle {cursor: pointer;stroke-width: 1.5px;}text {font: 10px arial;}path {stroke: DimGrey;stroke-width: 1.5px;}</style>';
+
+                var full_svg = head +  style + svg_data + "</svg>";
+                var blob = new Blob([full_svg], {type: "image/svg+xml"});  
+                saveAs(blob, "tradeoff.svg");
+            };
         </script>
     </head>
     <body>
         <div id="controls">
                 <!-- #slider error rate -->
-                <div>
+                <div class="slidecontainer">
                     min_volume: <div id="r1_value"></div>
                     <input type="range" min="100" max="10000" value="253" step="1" class="slider" id="myRange1">
                 </div>
-                <div>
+                <divclass="slidecontainer">
                     min_space: <div id="r2_value"></div>
                     <input type="range" min="5" max="500" value="7" step="1" class="slider" id="myRange2">
                 </div>
-                <div>
+                <div class="slidecontainer">
                     per cycle error: <div id="r3_value"></div>
                     <input type="range" min="0" max="1" value="0.008" step="0.001" class="slider" id="myRange3">
                 </div>
+                <!-- button for Download the current chart as SVG file-->
+                <a href="#" download="tradeoff.svg" onclick="save_as_svg()"> Download chart as SVG</a>
         </div>
 
         <div class="plot">
@@ -242,11 +254,10 @@
             */
             var itemSize = 5;
             var cellSize = itemSize - 1;
-            var margin = {top: 120, right: 20, bottom: 20, left: 110};
+            var margin = {top: 120, right: 20, bottom: 100, left: 110};
             
             var width = 900 - margin.right - margin.left;
             var height = 900 - margin.top - margin.bottom;
-
 
             var xScale = d3.scale.linear()
                 .domain([global_s[0],global_s[global_s.length-1]])
@@ -257,14 +268,12 @@
                 .orient("bottom");
 
             var yScale = d3.scale.log()
-                // .domain([global_v[0],global_v[global_v.length-1]])
                 .domain([global_v[global_v.length-1], global_v[0]])
                 .range([0, global_v.length * itemSize]);
 
             var yAxis = d3.svg.axis()
                 .scale(yScale)
                 .orient("left");
-
 
             var svg = d3.select('.plot')
                 .append("svg")
@@ -275,37 +284,60 @@
 
 
             var cells = svg.selectAll('rect')
-                 .data(data)
-                 .enter().append('g').append('rect')
-                 .attr('class', 'cell')
-                 .attr('width', cellSize)
-                 .attr('height', cellSize)
-                 .attr('y', function(d) { return yScale(d.y); })
-                 .attr('x', function(d) { return xScale(d.x); })
-                //  .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+                .data(data)
+                .enter().append('g').append('rect')
+                .attr('class', 'cell')
+                .attr('width', cellSize)
+                .attr('height', cellSize)
+                .attr('y', function(d) { return yScale(d.y); })
+                .attr('x', function(d) { return xScale(d.x); })
                 .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
 
 
             svg.append("g")
                 .attr("class", "y axis")
+                .attr("transform", "translate(0, " + (cellSize/2) + ")")
                 .call(yAxis)
                 .selectAll('text')
                 .attr('font-weight', 'normal');
 
             svg.append("g")
                 .attr("class", "x axis")
-                .attr("transform", "translate(0, " + (global_v.length + 1)* itemSize + ")")
+                .attr("transform", "translate(" + (cellSize/2) + ", " + (global_v.length + 1) * itemSize + ")")
                 .call(xAxis)
                 .selectAll('text')
                 .attr('font-weight', 'normal')
                 .style("text-anchor", "start");
-            
+
+            // now add titles to the axes
+            var movey = (global_v.length + 1) * itemSize;
+            var movex = (global_s.length + 1) * itemSize;
+
+            svg.append("text")
+                .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+                .attr("transform", "translate("+ (-margin.left/2) +","+(movex/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+                .text("Y Axis");
+
+            svg.append("text")
+                .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+                .attr("transform", "translate("+ (movex/2) +","+(movey + (margin.bottom / 2))+")")  // centre below axis
+                .text("X axis");
         </script>
 
         <script>
-        /*
-            Update functions
-        */
+            function update_data()
+            {
+                var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+
+                svg.selectAll("rect")
+                    .data(data)
+                    .transition().duration(1000)
+                    .style("fill", function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+            }
+
+            /*
+                Update functions
+            */
             function update_error(new_value)
             {
                 phys_error_rate = new_value;
