@@ -2,12 +2,12 @@ import math
 import numpy as np
 
 #plotting
-# from bokeh.plotting import figure, save, output_file
-# from bokeh.layouts import row, column
-# from bokeh.models.widgets import Slider
-# from bokeh.models import Legend, CustomJS, ColumnDataSource
-# from bokeh.io import curdoc
-# from bokeh.io import export_svgs
+from bokeh.plotting import figure, save, output_file
+from bokeh.layouts import row, column
+from bokeh.models.widgets import Slider
+from bokeh.models import Legend, CustomJS, ColumnDataSource
+from bokeh.io import curdoc
+from bokeh.io import export_svgs
 
 
 def logical_error_probability(d, p_step):
@@ -59,59 +59,59 @@ def RGB_map(data):
 def single_frame():
     return
 
-# def plot_data(v,s,data):
-#     global img, p, source
-#     img = np.empty((len(v),len(s)), dtype=np.uint32)
-#     view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
+def plot_data(v,s,data):
+    global img, p, source
+    img = np.empty((len(v),len(s)), dtype=np.uint32)
+    view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
 
-#     # i is vertical coordinate
-#     # j is horizontal coordinate
-#     for i in range(len(v)):
-#         for j in range(len(s)):
-#             view[i, j, 0], view[i, j, 1], view[i, j, 2] = RGB_map(data[i,j]);
-#             view[i, j, 3] = 180 # ALPHA
+    # i is vertical coordinate
+    # j is horizontal coordinate
+    for i in range(len(v)):
+        for j in range(len(s)):
+            view[i, j, 0], view[i, j, 1], view[i, j, 2] = RGB_map(data[i,j]);
+            view[i, j, 3] = 180 # ALPHA
 
-#     p = figure(plot_height=400, plot_width=400, x_range=(s[0],s[-1]), y_range=(v[0],v[-1]), y_axis_type="log")
+    p = figure(plot_height=400, plot_width=400, x_range=(s[0],s[-1]), y_range=(v[0],v[-1]), y_axis_type="log")
 
-#     source = ColumnDataSource({'image': [img]})
-#     p.image_rgba(image='image', x=s[0], y=v[0], dw=s[-1]-s[0], dh=v[-1]-v[0],source = source)
+    source = ColumnDataSource({'image': [img]})
+    p.image_rgba(image='image', x=s[0], y=v[0], dw=s[-1]-s[0], dh=v[-1]-v[0],source = source)
     
-#     # styling
-#     p.title.text = 'Total Qubit Overhead: volume-optimal vs space-optimal'
-#     p.xaxis.axis_label = 'space-optimal factor'
-#     p.yaxis.axis_label = 'volume-optimal factor'
+    # styling
+    p.title.text = 'Total Qubit Overhead: volume-optimal vs space-optimal'
+    p.xaxis.axis_label = 'space-optimal factor'
+    p.yaxis.axis_label = 'volume-optimal factor'
 
-#     # no toolbar and logo
-#     p.toolbar.logo = None
-#     p.toolbar_location = None
+    # no toolbar and logo
+    p.toolbar.logo = None
+    p.toolbar_location = None
 
-#     # legend
-#     items = []
-#     items += [("space-optimal has fewer qubits",[p.circle(i,i,color="gray",size=20)])]
-#     items += [("volume-optimal has fewer qubits",[p.circle(i,i,color="white",size=20)])]
-#     p.add_layout(Legend(items=items))
-#     p.legend.location = "bottom_right"
+    # legend
+    items = []
+    items += [("space-optimal has fewer qubits",[p.circle(i,i,color="gray",size=20)])]
+    items += [("volume-optimal has fewer qubits",[p.circle(i,i,color="white",size=20)])]
+    p.add_layout(Legend(items=items))
+    p.legend.location = "bottom_right"
 
 
-#     #slider error rate
-#     #callback = CustomJS(args=dict(p=p), code="""p.reset.emit()""")
-#     #callback = CustomJS(args=dict(p=p), code=""" """)
-#     error_rate = Slider(title = "per cycle error", value=0.001, start=0.001, end=0.02, step=0.001, format="0[.]000")#,callback=callback)
-#     error_rate.on_change('value',update_error)
+    #slider error rate
+    #callback = CustomJS(args=dict(p=p), code="""p.reset.emit()""")
+    #callback = CustomJS(args=dict(p=p), code=""" """)
+    error_rate = Slider(title = "per cycle error", value=0.001, start=0.001, end=0.02, step=0.001, format="0[.]000")#,callback=callback)
+    error_rate.on_change('value',update_error)
 
-#     #slider min_volume
-#     min_volume_slider = Slider(title = "min_volume", value=23*11, start=100, end=10000, step=100, format="0")#,callback=callback)
-#     min_volume_slider.on_change('value',update_volume)
+    #slider min_volume
+    min_volume_slider = Slider(title = "min_volume", value=23*11, start=100, end=10000, step=100, format="0")#,callback=callback)
+    min_volume_slider.on_change('value',update_volume)
 
-#     #slider min_space
-#     min_space_slider = Slider(title = "min_space", value=7, start=5, end=500, step=5, format="0")#,callback=callback)
-#     min_space_slider.on_change('value',update_space)
+    #slider min_space
+    min_space_slider = Slider(title = "min_space", value=7, start=5, end=500, step=5, format="0")#,callback=callback)
+    min_space_slider.on_change('value',update_space)
 
-#     #layout
-#     inputs = column(error_rate,min_volume_slider, min_space_slider)
-#     curdoc().add_root(row(inputs, p, width=800))
-#     curdoc().title = "Total Qubit Overhead: volume-optimal vs space-optimal"
-#     return
+    #layout
+    inputs = column(error_rate,min_volume_slider, min_space_slider)
+    curdoc().add_root(row(inputs, p, width=800))
+    curdoc().title = "Total Qubit Overhead: volume-optimal vs space-optimal"
+    return
 
 
 def gen_data(total_failure_rate, volume_min, space_min, p_err):

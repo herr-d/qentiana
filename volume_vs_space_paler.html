@@ -165,7 +165,6 @@
             function gen_data(total_failure_rate, volume_min, space_min, p_err)
             {
                 // 2D Array
-                //var data = create_2d_array(global_v.length, global_s.length);
                 var data = new Array();
 
                 for (var i=0; i<global_v.length; i++)
@@ -229,13 +228,13 @@
                     min_volume: <div id="r1_value"></div>
                     <input type="range" min="100" max="10000" value="253" step="1" class="slider" id="myRange1">
                 </div>
-                <divclass="slidecontainer">
+                <div class="slidecontainer">
                     min_space: <div id="r2_value"></div>
                     <input type="range" min="5" max="500" value="7" step="1" class="slider" id="myRange2">
                 </div>
                 <div class="slidecontainer">
                     per cycle error: <div id="r3_value"></div>
-                    <input type="range" min="0" max="1" value="0.008" step="0.001" class="slider" id="myRange3">
+                    <input type="range" min="0" max="0.1" value="0.008" step="0.001" class="slider" id="myRange3">
                 </div>
                 <!-- button for Download the current chart as SVG file-->
                 <a href="#" download="tradeoff.svg" onclick="save_as_svg()"> Download chart as SVG</a>
@@ -253,11 +252,17 @@
                 D3
             */
             var itemSize = 5;
-            var cellSize = itemSize - 1;
-            var margin = {top: 120, right: 20, bottom: 100, left: 110};
+            var cellSize = itemSize+1; // make them slightly overlap so there are no lines
+            var margin = {top: 20, right: 20, bottom: 80, left: 80};
             
-            var width = 900 - margin.right - margin.left;
-            var height = 900 - margin.top - margin.bottom;
+            var width = 650 - margin.right - margin.left;
+            var height = 650 - margin.top - margin.bottom;
+
+            // use for better axis formating
+            var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
+                formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); },
+                formatTick = function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); };
+
 
             var xScale = d3.scale.linear()
                 .domain([global_s[0],global_s[global_s.length-1]])
@@ -273,6 +278,7 @@
 
             var yAxis = d3.svg.axis()
                 .scale(yScale)
+                .ticks(4, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
                 .orient("left");
 
             var svg = d3.select('.plot')
@@ -287,6 +293,8 @@
                 .data(data)
                 .enter().append('g').append('rect')
                 .attr('class', 'cell')
+                //.style("stroke", function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";})
+                //.style("stroke-width", 2)
                 .attr('width', cellSize)
                 .attr('height', cellSize)
                 .attr('y', function(d) { return yScale(d.y); })
@@ -316,12 +324,12 @@
             svg.append("text")
                 .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
                 .attr("transform", "translate("+ (-margin.left/2) +","+(movex/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
-                .text("Y Axis");
+                .text("Volume Factor");
 
             svg.append("text")
                 .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
                 .attr("transform", "translate("+ (movex/2) +","+(movey + (margin.bottom / 2))+")")  // centre below axis
-                .text("X axis");
+                .text("Space Factor");
         </script>
 
         <script>
