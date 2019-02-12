@@ -172,26 +172,6 @@
                 return ret_obj;
             }
 
-            function RGB_map(value)
-            {
-                // maps values to color
-                // data > 1 -> volume optimized is better than space optimized
-
-                // paler: return a string to be used in CSS?
-                if (value > 1)
-                {
-                    // RED, GREEN, BLUE
-                    return "rgb(255, 255,255)";
-                }
-                else
-                { 
-                    // gray area space optimized is better
-                    var add = parseInt(value * 200);
-                    // RED, GREEN, BLUE 
-                    return "rgb(" + add + ", " + add + ", " + add + ")";
-                }
-            }
-
             function gen_data(total_failure_rate, volume_min, space_min, p_err)
             {
                 // 2D Array
@@ -214,10 +194,15 @@
                         }
 
                         //data[i][j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
+
+                        var ratio = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
+
+                        var int_color = ratio > 1 ? 255 : Math.round(ratio * 255);
+
                         data.push({
                             x: global_s[j],
                             y: global_v[i],
-                            value: Math.round(100*ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"])
+                            value: int_color
                         })
                     }
                 }
@@ -250,29 +235,31 @@
 
         <script>
             var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-            console.log(data)
+            // console.log(data)
 
             /*
                 D3
             */
-            var itemSize = 100;
+            var itemSize = 5;
             var cellSize = itemSize - 1;
             var margin = {top: 120, right: 20, bottom: 20, left: 110};
             
-            var width = 750 - margin.right - margin.left;
-            var height = 500 - margin.top - margin.bottom;
+            var width = 900 - margin.right - margin.left;
+            var height = 900 - margin.top - margin.bottom;
 
 
             var xScale = d3.scale.linear()
                 .domain([global_s[0],global_s[global_s.length-1]])
-                .range([0,width]);
+                .range([0, global_s.length * itemSize]);
 
             var xAxis = d3.svg.axis()
-                .scale(xScale);
+                .scale(xScale)
+                .orient("bottom");
 
             var yScale = d3.scale.log()
-                .domain([global_v[0],global_v[global_v.length-1]])
-                .range([0,height]);
+                // .domain([global_v[0],global_v[global_v.length-1]])
+                .domain([global_v[global_v.length-1], global_v[0]])
+                .range([0, global_v.length * itemSize]);
 
             var yAxis = d3.svg.axis()
                 .scale(yScale)
@@ -295,7 +282,9 @@
                  .attr('height', cellSize)
                  .attr('y', function(d) { return yScale(d.y); })
                  .attr('x', function(d) { return xScale(d.x); })
-                 .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+                //  .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+                .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+
 
             svg.append("g")
                 .attr("class", "y axis")
@@ -305,15 +294,12 @@
 
             svg.append("g")
                 .attr("class", "x axis")
+                .attr("transform", "translate(0, " + (global_v.length + 1)* itemSize + ")")
                 .call(xAxis)
                 .selectAll('text')
                 .attr('font-weight', 'normal')
-                .style("text-anchor", "start")
-                .attr("dx", ".8em")
-                .attr("dy", ".5em")
-                .attr("transform", function (d) {
-                    return "rotate(-65)";
-                });
+                .style("text-anchor", "start");
+            
         </script>
 
         <script>
