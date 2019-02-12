@@ -1,9 +1,6 @@
 <html>
     <head>
-        <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-1.0.0.min.js"></script>
-        <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.0.min.js"></script>
-        <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-tables-1.0.0.min.js"></script>
-        <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-api-1.0.0.min.js"></script>
+        <script src="http://d3js.org/d3.v3.js"></script>
 
         <script>
         /*
@@ -43,6 +40,25 @@
             }
             return ret;
         }
+
+        var local_factorial_cache = {};
+        function local_factorial (n)
+        {
+            // console.log(n);
+            // return 1;
+
+            if (n == 0 || n == 1)
+            {
+                return 1;
+            }
+            if (local_factorial_cache[n+""] > 0)
+            {
+                return local_factorial_cache[n+""];
+            }
+            return local_factorial_cache[n+""] = local_factorial(n-1) * n;
+        }
+
+        local_factorial(100);
         </script>
 
         <script>
@@ -58,36 +74,35 @@
             // data for minimum values
             var volume_min = 23 * 11;
             var space_min = 7;
+            //
             var phys_error_rate = 0.001;
-
-            /*
-                Visualisation parameters
-            */
-            // # storage for image
-            var img = null;
-            // # figure
-            var p = null;
-            // # storage for image in figure
-            var source = null; 
 
             function logical_error_probability(d, p_step)
             {
-                // use equation from fowlers paper on logical error rate
-                tmp = d*math.factorial(d) / (math.factorial(int((d+1)/2) - 1)
-                    * math.factorial(int((d+1)/2)))
-                return tmp * p_step**int(d+1)/2
+                /*
+                    Use equation from fowlers paper on logical error rate
+                */
+                var p0 = d * local_factorial(d);
+                var p1 = local_factorial(((d+1)/2) - 1);
+                var p2 = local_factorial((d+1)/2);
+                var tmp =  p0 / ( p1 * p2 );
+
+                return tmp * Math.pow(p_step, (d+1)/2);
             }
             
-            function calc_distance(p_err_out, p_step, spacetime_volume, min_dist = 3, max_dist = 50)
+            function calc_distance(p_err_out, p_step, spacetime_volume)
             {
                 // Find the lowest distance for which the error rate of the whole circuit
                 // is given by less than p_err_out. Given an error rate per step of p_step.  
                 // python range is < or <=?
-                var log_err_prob = logical_error_probability(d, p_step);
-                var val_to_compare = 1 - Math.pow(( 1 - log_err_prob), spacetime_volume);
+                var min_dist = 3;
+                var max_dist = 50;
 
                 for (var d = min_dist; d <= max_dist; d++)
                 {
+                    var log_err_prob = logical_error_probability(d, p_step);
+                    var val_to_compare = 1 - Math.pow(( 1 - log_err_prob), spacetime_volume);
+
                     if(p_err_out > val_to_compare)
                     {
                         return d;
@@ -96,7 +111,6 @@
 
                 // "Could not find a suitable distance"
                 return -1;
-                // throw ("Could not find a suitable distance");
             }
 
             function logical_error_from_volume(volume, total_failure_rate)
@@ -113,12 +127,12 @@
             function calculate_total(volume, space, total_failure_rate, p_step_err = 0.02)
             {
                 var P_1 = logical_error_from_volume(volume, total_failure_rate);
-                var dist = calc_distance(total_failure_rate, p_step_err, volume);
+                var dist = calc_distance(P_1, p_step_err, volume);
 
                 if(dist == -1)
                 {
                     // ERROR
-                    return "ERROR"
+                    return "ERROR";
                 }
 
                 var ret_obj = {};
@@ -143,7 +157,7 @@
                     // gray area space optimized is better
                     var add = parseInt(value * 200);
                     // RED, GREEN, BLUE 
-                    return "rbb(" + add + ", " + add + ", " + add + ")";
+                    return "rgb(" + add + ", " + add + ", " + add + ")";
                 }
             }
 
@@ -156,10 +170,10 @@
                 {
                     for(var j=0; j < global_s.length; j++)
                     {
-                        space_param = parseInt(space_min * s[j] + 0.5);
+                        var space_param = Math.round(space_min * global_s[j] + 0.5);
                         var ret_1 = calculate_total(volume_min, space_param, total_failure_rate, p_err);
 
-                        vol_param = parseInt(volume_min * v[i] + 0.5);
+                        var vol_param = Math.round(volume_min * global_v[i] + 0.5);
                         var ret_2 = calculate_total(vol_param, space_min, total_failure_rate, p_err);
 
                         if ((ret_1 == "ERROR") || (ret_2 == "ERROR"))
@@ -169,117 +183,168 @@
                         data[i, j] = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
                     }
                 }
-                return data
+
+                return data;
             }
 
-            function update_error(attrname, old_value, new_value)
-            {
-                // global total_failure_rate,volume_min,space_min,phys_error_rate
-                phys_error_rate = new_value
-                update_data()
-            }
+            // function update_data()
+            // {
+            //     var data = gen_data(total_failure_rate,volume_min,space_min, phys_error_rate);
 
-
-            function update_space(attrname, old_value, new_value)
-            {
-                // global total_failure_rate,volume_min,space_min,phys_error_rate
-                space_min = new_value
-                update_data()
-            }
-
-
-            function update_volume(attrname, old_value, new_value)
-            {
-                // global total_failure_rate,volume_min,space_min,phys_error_rate
-                volume_min = new_value
-                update_data()
-            }
-
-            function update_data()
-            {
-                var data = gen_data(total_failure_rate,volume_min,space_min, phys_error_rate);
-
-                // view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
-                // # i is vertical coordinate
-                // # j is horizontal coordinate
-                for (var i=0; i<global_v.length; i++)
-                {
-                    for (var j=0; j<global_s.length; j++)
-                    {
-                        // view[i, j, 0]
-                        // view[i, j, 1]
-                        // view[i, j, 2] = RGB_map(data[i,j]);
-                        // ALPHA
-                        // view[i, j, 3] = 180; 
-                        view[i, j] = RGB_map(data[i,j]);//without alpha
-                    }
-                }
+            //     // view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
+            //     // # i is vertical coordinate
+            //     // # j is horizontal coordinate
+            //     for (var i=0; i<global_v.length; i++)
+            //     {
+            //         for (var j=0; j<global_s.length; j++)
+            //         {
+            //             // view[i, j, 0]
+            //             // view[i, j, 1]
+            //             // view[i, j, 2] = RGB_map(data[i,j]);
+            //             // ALPHA
+            //             // view[i, j, 3] = 180; 
+            //             view[i, j] = RGB_map(data[i,j]);//without alpha
+            //         }
+            //     }
 
                 // source.data = {'image': [img]}
-            }
+            // }
 
-            function plot_data(v, s, data)
-            {
-                // global img, p, source
-                img = np.empty((len(v),len(s)), dtype=np.uint32)
-                view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
+            // function plot_data(v, s, data)
+            // {
+            //     // global img, p, source
+            //     img = np.empty((len(v),len(s)), dtype=np.uint32)
+            //     view = img.view(dtype=np.uint8).reshape((len(v), len(s), 4))
 
-                // # i is vertical coordinate
-                // # j is horizontal coordinate
-                for (var i=0; i< v.length; i++)
-                {
-                    for (var j=0; j< s.length; j++)
-                    {
-                        view[i, j, 0], view[i, j, 1], view[i, j, 2] = RGB_map(data[i,j]);
-                        view[i, j, 3] = 180 
-                        // # ALPHA
-                    }
-                }
+            //     // # i is vertical coordinate
+            //     // # j is horizontal coordinate
+            //     for (var i=0; i< v.length; i++)
+            //     {
+            //         for (var j=0; j< s.length; j++)
+            //         {
+            //             view[i, j, 0], view[i, j, 1], view[i, j, 2] = RGB_map(data[i,j]);
+            //             view[i, j, 3] = 180 
+            //             // # ALPHA
+            //         }
+            //     }
 
-                p = figure(plot_height=400, plot_width=400, x_range=(s[0],s[-1]), y_range=(v[0],v[-1]), y_axis_type="log")
+            //     p = figure(plot_height=400, plot_width=400, x_range=(s[0],s[-1]), y_range=(v[0],v[-1]), y_axis_type="log")
 
-                source = ColumnDataSource({'image': [img]})
-                p.image_rgba(image='image', x=s[0], y=v[0], dw=s[-1]-s[0], dh=v[-1]-v[0],source = source)
+            //     var source = new Bokeh.ColumnDataSource({'image': [img]})
+            //     p.image_rgba(image='image', x=s[0], y=v[0], dw=s[-1]-s[0], dh=v[-1]-v[0],source = source)
                 
-                // Styling
-                p.title.text = 'Total Qubit Overhead: volume-optimal vs space-optimal'
-                p.xaxis.axis_label = 'space-optimal factor'
-                p.yaxis.axis_label = 'volume-optimal factor'
-
-                // No toolbar and logo
-                p.toolbar.logo = None
-                p.toolbar_location = None
-
-                // Legend
-                items = []
-                items += [("space-optimal has fewer qubits",[p.circle(i,i,color="gray",size=20)])]
-                items += [("volume-optimal has fewer qubits",[p.circle(i,i,color="white",size=20)])]
-                p.add_layout(Legend(items=items))
-                p.legend.location = "bottom_right"
-
-
-                // Slider error rate
-                error_rate = Slider(title = "per cycle error", value=0.001, start=0.001, end=0.02, step=0.001, format="0[.]000")#,callback=callback)
-                error_rate.on_change('value',update_error)
-
-                // Slider min_volume
-                min_volume_slider = Slider(title = "min_volume", value=23*11, start=100, end=10000, step=100, format="0")#,callback=callback)
-                min_volume_slider.on_change('value',update_volume)
-
-                // Slider min_space
-                min_space_slider = Slider(title = "min_space", value=7, start=5, end=500, step=5, format="0")#,callback=callback)
-                min_space_slider.on_change('value',update_space)
-
-                // Layout
-                inputs = column(error_rate,min_volume_slider, min_space_slider)
-                curdoc().add_root(row(inputs, p, width=800))
-                curdoc().title = "Total Qubit Overhead: volume-optimal vs space-optimal"
-                return 
-            }
-
-            var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-            plot_data(global_v, global_s, data);
-
+            // }
         </script>
     </head>
+    <body>
+        <div id="controls">
+                <!-- #slider error rate -->
+                <div>
+                    min_volume: <div id="r1_value"></div>
+                    <input type="range" min="100" max="10000" value="253" step="1" class="slider" id="myRange1">
+                </div>
+                <div>
+                    min_space: <div id="r2_value"></div>
+                    <input type="range" min="5" max="500" value="7" step="1" class="slider" id="myRange2">
+                </div>
+                <div>
+                    per cycle error: <div id="r3_value"></div>
+                    <input type="range" min="0" max="1" value="0.008" step="0.001" class="slider" id="myRange3">
+                </div>
+        </div>
+
+        <div class="plot">
+            <!-- Here should be the plot -->
+        </div>
+
+        <script>
+            var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+            // plot_data(global_v, global_s, data);
+
+            /*
+                D3
+            */
+            // var itemSize = 100;
+            // var cellSize = itemSize - 1;
+            // var margin = {top: 120, right: 20, bottom: 20, left: 110};
+            
+            // var width = 750 - margin.right - margin.left;
+            // var height = 300 - margin.top - margin.bottom;
+
+            // var svg = d3.select('.plot')
+            //     .append("svg")
+            //     .attr("width", width + margin.left + margin.right)
+            //     .attr("height", height + margin.top + margin.bottom)
+            //     .append("g")
+            //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            // var cells = svg.selectAll('rect')
+            //     .data(data)
+            //     .enter().append('g').append('rect')
+            //     .attr('class', 'cell')
+            //     .attr('width', cellSize)
+            //     .attr('height', cellSize)
+            //     .attr('y', function(d) { return yScale(d.y); })
+            //     .attr('x', function(d) { return xScale(d.x); })
+            //     .attr('fill', function(d) { return colorScale(d.rgb_color); });
+        </script>
+
+        <script>
+        /*
+            Update functions
+        */
+            function update_error(new_value)
+            {
+                phys_error_rate = new_value;
+                update_data();
+            }
+
+
+            function update_space(new_value)
+            {
+                space_min = new_value;
+                update_data();
+            }
+
+
+            function update_volume(new_value)
+            {
+                volume_min = new_value;
+                update_data();
+            }
+        </script>
+
+        <script>
+            /*Event handlers for html elements*/
+            var slider1 = document.getElementById("myRange1");
+            var output1 = document.getElementById("r1_value");
+            output1.innerHTML = slider1.value; // Display the default slider value
+
+            var slider2 = document.getElementById("myRange2");
+            var output2 = document.getElementById("r2_value");
+            output2.innerHTML = slider2.value; // Display the default slider value
+
+            var slider3 = document.getElementById("myRange3");
+            var output3 = document.getElementById("r3_value");
+            output3.innerHTML = slider3.value; // Display the default slider value
+
+            // Update the current slider value (each time you drag the slider handle)
+            slider1.oninput = function() {
+                output1.innerHTML = this.value;
+                update_volume(this.value);
+            } 
+
+            // Update the current slider value (each time you drag the slider handle)
+            slider2.oninput = function() {
+                output2.innerHTML = this.value;
+                update_space(this.value);
+            } 
+
+            // Update the current slider value (each time you drag the slider handle)
+            slider3.oninput = function() {
+                output3.innerHTML = this.value;
+                update_error(this.value);
+            }
+        </script>
+    </body>
 </html>
