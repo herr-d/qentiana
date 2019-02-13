@@ -7,79 +7,15 @@
         <script src="http://d3js.org/d3.v3.js"></script>
         <script src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
 
+        <script src="utilities.js"></script>
+        <script src="austinhelpers.js"></script>
+
         <script>
-            /*
-                Utility functions
-            */
-            function local_logspace(start, stop, num=50)
+            function approx_mult_factor(factor, value)
             {
-                //assume base = 10
-                var ret = new Array(num);
-
-                var delta = (stop - start)/num;
-                for(var i=0; i<num; i++)
-                {
-                    ret[i] = Math.pow(10, start + delta * i);
-                }
-
-                return ret;
+                // return Math.round(factor * value)
+                return Math.ceil(factor * value);
             }
-            
-            function local_linspace(start, stop, num=50)
-            {
-                var ret = new Array(num);
-
-                var delta = (stop - start)/num;
-                for(var i=0; i<num; i++)
-                {
-                    ret[i] = start + delta * i;
-                }
-
-                return ret;
-            }
-
-            function create_2d_array(dim1, dim2)
-            {
-                var ret = new Array(dim1);
-                for(var i=0; i<dim1; i++)
-                {
-                    ret[i] = new Array(dim2);
-                }
-                return ret;
-            }
-
-            var local_factorial_cache = {};
-            function local_factorial (n)
-            {
-                if (n == 0 || n == 1)
-                {
-                    return 1;
-                }
-                if (local_factorial_cache[n+""] > 0)
-                {
-                    return local_factorial_cache[n+""];
-                }
-
-                var part = 1;
-                for(var fn = 2; fn <=n; fn++)
-                {
-                    if (local_factorial_cache[fn+""] > 0)
-                    {
-                        part = local_factorial_cache[fn+""];
-                    }
-                    else
-                    {
-                        part = part * fn;
-                        local_factorial_cache[fn+""] = part;
-                    }
-                } 
-                local_factorial_cache[n+""] = part;
-
-                return local_factorial_cache[n+""];
-            }
-
-            // precompute values in cache
-            local_factorial(100);
         </script>
 
         <script>
@@ -90,13 +26,14 @@
             // log spaced volume scaling factor
             var global_v = local_logspace(0, 6, nr_items);
             // scaling factor space
-            var global_s = local_linspace(1, 3, nr_items);
+            var global_s = local_linspace(1, 2, nr_items);
 
-            var total_failure_rate = 0.01;
+            // var total_failure_rate = 0.0001;//99.99% reliability
+            var total_failure_rate = 0.01;//99% reliability
             // data for minimum values
             var volume_min = 23 * 11;
             var space_min = 7;
-            var phys_error_rate = 0.008;
+            var phys_error_rate = 0.001;
 
             function logical_error_probability(d, p_cycle)
             {
@@ -108,7 +45,7 @@
                 var p2 = local_factorial((d+1)/2);
                 var tmp =  p0 / ( p1 * p2 );
 
-                return tmp * Math.pow(p_cycle, (d+1)/2);
+                return tmp * Math.pow(p_cycle, (d + 1)/2);
             }
             
             function calc_distance(p_err_out, p_cycle, spacetime_volume)
@@ -142,17 +79,24 @@
 
             function calculate_total(volume, space, total_failure_rate, p_cycle_err)
             {
-                var dist = calc_distance(total_failure_rate, p_cycle_err, volume);
+                // var dist = calc_distance(total_failure_rate, p_cycle_err, volume);
 
-                if(dist == -1)
-                {
-                    // ERROR
-                    return "ERROR";
-                }
+                // if(dist == -1)
+                // {
+                //     // ERROR
+                //     return "ERROR";
+                // }
+
+                // var ret_obj = {};
+                // ret_obj["dist"] = dist;
+                // ret_obj["number_of_physical_qubits"] = number_of_physical_qubits(dist, space);
+                // return ret_obj;
+
+                var res = austin_data_qubits(space, volume, 99, p_cycle_err);
 
                 var ret_obj = {};
-                ret_obj["dist"] = dist;
-                ret_obj["number_of_physical_qubits"] = number_of_physical_qubits(dist, space);
+                ret_obj["dist"] = res.distance;
+                ret_obj["number_of_physical_qubits"] = res.qubits;
                 return ret_obj;
             }
 
@@ -165,10 +109,10 @@
                 {
                     for(var j=0; j < global_s.length; j++)
                     {
-                        var space_param = Math.round(space_min * global_s[j]);
+                        var space_param = approx_mult_factor(global_s[j], space_min);
                         var ret_1 = calculate_total(volume_min, space_param, total_failure_rate, p_err);
 
-                        var vol_param = Math.round(volume_min * global_v[i]);
+                        var vol_param = approx_mult_factor(global_v[i], volume_min);
                         var ret_2 = calculate_total(vol_param, space_min, total_failure_rate, p_err);
 
                         if ((ret_1 == "ERROR") || (ret_2 == "ERROR"))
@@ -176,14 +120,16 @@
                             console.log("SOMETHING WENT WRONG!!!");
                         }
 
-                        var ratio = ret_2["number_of_physical_qubits"]/ret_1["number_of_physical_qubits"];
-
-                        var int_color = ratio > 1 ? 255 : Math.round(ratio * 255);
+                        var ratio = (ret_2["number_of_physical_qubits"])/ (ret_1["number_of_physical_qubits"]);
 
                         data.push({
                             x: global_s[j],
                             y: global_v[i],
-                            value: int_color
+                            dist_opt_vol : ret_1.dist,
+                            dist_opt_space : ret_2.dist,
+                            nr_target_vol : ret_1["number_of_physical_qubits"],
+                            nr_target_space : ret_2["number_of_physical_qubits"],
+                            ratio: ratio
                         })
                     }
                 }
@@ -191,52 +137,70 @@
                 return data;
             }
 
-            function storeSVG(svg_container)
-            {
-                xmlString = serializer.serializeToString(svg_container.node());
-                imgData = 'data:image/svg+xml;base64,' + btoa(xmlString);
-            }
-
-            function save_as_svg()
-            {
-                var svg_data = document.getElementsByClassName("plot")[0].innerHTML;//put id of your svg element here
-
-                var head = '<svg title="graph" version="1.1" xmlns="http://www.w3.org/2000/svg">';
-
-                //if you have some additional styling like graph edges put them inside <style> tag
-                //this font is too small
-                var style = '<style>circle {cursor: pointer;stroke-width: 1.5px;}text {font: 10px arial;}path {stroke: DimGrey;stroke-width: 1.5px;}</style>';
-
-                var full_svg = head +  style + svg_data + "</svg>";
-                var blob = new Blob([full_svg], {type: "image/svg+xml"});  
-                saveAs(blob, "tradeoff.svg");
-            };
+            
         </script>
     </head>
     <body>
+        <script src="svgsaving.js"></script>
+
         <div id="controls">
                 <!-- #slider error rate -->
                 <div class="slidecontainer">
-                    min_volume: <div id="r1_value"></div>
-                    <input type="range" min="100" max="10000" value="253" step="1" class="slider" id="myRange1">
+                    Target volume: <div id="r1_value"></div>
+                    <input type="range" min="100" max="10000" value="0" step="1" class="slider" id="myRange1">
                 </div>
                 <div class="slidecontainer">
-                    min_space: <div id="r2_value"></div>
-                    <input type="range" min="5" max="500" value="7" step="1" class="slider" id="myRange2">
+                    Target log. qubits <div id="r2_value"></div>
+                    <input type="range" min="5" max="500" value="0" step="1" class="slider" id="myRange2">
                 </div>
                 <div class="slidecontainer">
                     per cycle error: <div id="r3_value"></div>
-                    <input type="range" min="0" max="0.1" value="0.008" step="0.001" class="slider" id="myRange3">
+                    <input type="range" min="0" max="0.1" value="0.000" step="0.001" class="slider" id="myRange3">
                 </div>
                 <!-- button for Download the current chart as SVG file-->
-                <a href="#" download="tradeoff.svg" onclick="save_as_svg()"> Download chart as SVG</a>
+                <a href="#" download="tradeoff.svg" onclick="save_as_svg('plot')"> Download chart as SVG</a>
         </div>
+
+        <script>
+            document.getElementById("myRange1").value = volume_min;
+            document.getElementById("myRange2").value = space_min;
+            document.getElementById("myRange3").value = phys_error_rate;
+        </script>
 
         <div class="plot">
             <!-- Here should be the plot -->
         </div>
+        <div id="console" style="height:200px; width: 800px; background-color: antiquewhite;">
+
+        </div>
 
         <script>
+            function handleMouseOver(data, param2)
+            {
+                var curr_volume = approx_mult_factor(data.y, volume_min);
+                var curr_space = approx_mult_factor(data.x, space_min);
+
+                var output = document.getElementById("console");
+                // clean console
+                output.innerHTML = "";
+
+                if(data.ratio <= 1)
+                    output.style.color = "green";
+                else
+                    output.style.color = "red";
+
+                output.innerHTML += data.x + " " + data.y + "->" + data.ratio + "<br>";
+                output.innerHTML += "distance vol: " + data.dist_opt_vol + " having a hardware footprint of " + curr_space + " log qubits <br>";
+                output.innerHTML += "distance space: " + data.dist_opt_space + " for a volume of " + curr_volume + "<br>";
+
+                output.innerHTML += "tradeoff time scaling threshold<br>" + (data.x * data.y) + "<br>";
+                output.innerHTML += "minimum scaling should be below tradeoff threshold:<br>" + data.dist_opt_space + "<br>";
+
+                output.innerHTML += "<br>";
+                output.innerHTML += "qub vol: " + data.nr_target_vol + "<br>";
+                output.innerHTML += "qub spc: " + data.nr_target_space + "<br>";
+            }
+
             var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
             console.log(calc_distance(0.01,0.008,1000))
             /*
@@ -288,7 +252,8 @@
                 .attr('height', cellSize)
                 .attr('y', function(d) { return yScale(d.y); })
                 .attr('x', function(d) { return xScale(d.x); })
-                .attr('fill', function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+                .attr('fill', function(d) {return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";})
+                .on('mouseover', handleMouseOver);
 
 
             svg.append("g")
@@ -329,7 +294,7 @@
                 svg.selectAll("rect")
                     .data(data)
                     .transition().duration(1000)
-                    .style("fill", function(d) {return "rgb(" + d.value + "," + d.value + "," + d.value + ")";});
+                    .style("fill", function(d) {return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";});
             }
 
             /*
