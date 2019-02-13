@@ -167,11 +167,13 @@
             document.getElementById("myRange3").value = phys_error_rate;
         </script>
 
-        <div class="plot">
-            <!-- Here should be the plot -->
-        </div>
-        <div id="console" style="height:200px; width: 800px; background-color: antiquewhite;">
+        <div style="overflow: hidden;">
+            <div class="plot" style="float: left">
+                <!-- Here should be the plot -->
+            </div>
 
+            <div id="console" style="height:900px; width: 800px; background-color: antiquewhite;overflow: hidden;">
+            </div>
         </div>
 
         <script>
@@ -199,10 +201,26 @@
                 output.innerHTML += "<br>";
                 output.innerHTML += "qub vol: " + data.nr_target_vol + "<br>";
                 output.innerHTML += "qub spc: " + data.nr_target_space + "<br>";
+
+
+                var vol_min_depth = Math.floor(volume_min / curr_space);
+                if(volume_min % curr_space != 0)
+                {
+                    vol_min_depth++;
+                }
+
+                var volume_in_case_no_depth_scale = space_min * vol_min_depth;
+
+                var threshold = Math.floor(curr_volume / volume_in_case_no_depth_scale);
+                if(curr_volume % volume_in_case_no_depth_scale)
+                {
+                    threshold++;
+                }
+                output.innerHTML += "paler tradeoff time scaling threshold<br>" + threshold + "<br>";
             }
 
             var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-            console.log(calc_distance(0.01,0.008,1000))
+            // console.log(calc_distance(0.01,0.008,1000))
             /*
                 D3
             */
