@@ -3,7 +3,7 @@
 
 function austin_p_logical(p_gate, d)
 {
-    return 0.1 * Math.pow((100 * p_gate), ((d + 1) / 2));
+    return 0.1 * Math.pow((9.9*p_gate), ((d + 1) / 2));
 }
 
 

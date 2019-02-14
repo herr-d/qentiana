@@ -26,7 +26,7 @@
             // log spaced volume scaling factor
             var global_v = local_logspace(-2, 2, nr_items);
             // scaling factor space
-            var global_s = local_linspace(0, 3, nr_items);
+            var global_s = local_linspace(0, 2, nr_items);
 
             // var total_failure_rate = 0.0001;//99.99% reliability
             var total_failure_rate = 0.01;//99% reliability
@@ -288,6 +288,17 @@
                 .selectAll('text')
                 .attr('font-weight', 'normal')
                 .style("text-anchor", "start");
+
+
+            // draw lines
+            xarray = local_linspace(0.01, 2, nr_items)
+            var line = d3.svg.line()
+            .x(function(d,i) {
+                return xScale(d);})
+            .y(function(d,i) {
+                return yScale(1/(Math.pow(d,4)));});
+
+            svg.append("svg:path").attr("d", line(xarray));
 
             // now add titles to the axes
             var movey = (global_v.length + 1) * itemSize;

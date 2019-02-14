@@ -2,6 +2,12 @@
   width: 100%; /* Width of the outside container */
 }
 
+/* tell the SVG path to be a thin blue line without any area fill */
+path {
+  stroke: steelblue;
+  stroke-width: 1;
+  fill: none;
+}
 /* The slider itself */
 .slider {
   -webkit-appearance: none;  /* Override default CSS styles */
@@ -17,12 +23,12 @@
 
 .axis path, 
 .axis line {
-    fill: none;
-    stroke: black;
-    shape-rendering: crispEdges;
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
 }
 
 .axis text {
-    font-family: sans-serif;
-    font-size: 11px;
+  font-family: sans-serif;
+  font-size: 11px;
 }
