@@ -11,14 +11,6 @@
         <script src="austinhelpers.js"></script>
 
         <script>
-            function approx_mult_factor(factor, value)
-            {
-                // return Math.round(factor * value)
-                return Math.ceil(factor * value);
-            }
-        </script>
-
-        <script>
             /*
                 Parameters
             */
@@ -27,6 +19,8 @@
             var global_v = local_logspace(0, 6, nr_items);
             // scaling factor space
             var global_s = local_linspace(1, 2, nr_items);
+            //
+            var estimation_method = "a18";
 
             // var total_failure_rate = 0.0001;//99.99% reliability
             var total_failure_rate = 0.01;//99% reliability
@@ -34,6 +28,9 @@
             var volume_min = 23 * 11;
             var space_min = 7;
             var phys_error_rate = 0.001;
+
+            var plot_names = [];
+            var plot_generators = {};
 
             function logical_error_probability(d, p_cycle)
             {
@@ -79,24 +76,30 @@
 
             function calculate_total(volume, space, total_failure_rate, p_cycle_err)
             {
-                // var dist = calc_distance(total_failure_rate, p_cycle_err, volume);
+                var ret_obj = {
+                    dist : -1,
+                    number_of_physical_qubits: -1
+                };
 
-                // if(dist == -1)
-                // {
-                //     // ERROR
-                //     return "ERROR";
-                // }
+                if(estimation_method == "a12")
+                {
+                    var dist = calc_distance(total_failure_rate, p_cycle_err, volume);
 
-                // var ret_obj = {};
-                // ret_obj["dist"] = dist;
-                // ret_obj["number_of_physical_qubits"] = number_of_physical_qubits(dist, space);
-                // return ret_obj;
+                    ret_obj.dist = dist;
+                    ret_obj.number_of_physical_qubits = number_of_physical_qubits(dist, space);
+                }
+                else if(estimation_method == "a18")
+                {
+                    var res = austin_data_qubits(space, volume, 99, p_cycle_err);
 
-                var res = austin_data_qubits(space, volume, 99, p_cycle_err);
-
-                var ret_obj = {};
-                ret_obj["dist"] = res.distance;
-                ret_obj["number_of_physical_qubits"] = res.qubits;
+                    ret_obj.dist = res.distance;
+                    ret_obj.number_of_physical_qubits = res.qubits;
+                }
+                else
+                {
+                    console.log("ERROR!");
+                }
+                
                 return ret_obj;
             }
 
@@ -143,7 +146,7 @@
     <body>
         <script src="svgsaving.js"></script>
 
-        <div id="controls">
+        <div id="controls" style="font-size:10pt">
                 <!-- #slider error rate -->
                 <div class="slidecontainer">
                     Target volume: <div id="r1_value"></div>
@@ -158,17 +161,21 @@
                     <input type="range" min="0" max="0.1" value="0.000" step="0.001" class="slider" id="myRange3">
                 </div>
                 <!-- button for Download the current chart as SVG file-->
-                <a href="#" download="tradeoff.svg" onclick="save_as_svg('plot')"> Download chart as SVG</a>
+                <a href="#" download="tradeoff1.svg" onclick="save_as_svg('.plot1')"> Download left SVG</a>
+                <a href="#" download="tradeoff2.svg" onclick="save_as_svg('.plot2')"> Download right SVG</a>
+                Estimation Method:
+                <select id="selectestimation">
+                    <option value="a18">Austin 2018</option>
+                    <option value="a12">Austin 2012</option>
+                </select> 
         </div>
 
-        <script>
-            document.getElementById("myRange1").value = volume_min;
-            document.getElementById("myRange2").value = space_min;
-            document.getElementById("myRange3").value = phys_error_rate;
-        </script>
-
         <div style="overflow: hidden;">
-            <div class="plot" style="float: left">
+            <div class="plot1" style="float: left">
+                <!-- Here should be the plot -->
+            </div>
+
+            <div class="plot2" style="float: left">
                 <!-- Here should be the plot -->
             </div>
 
@@ -177,6 +184,61 @@
         </div>
 
         <script>
+            function paler_color_interpretation(data)
+            {
+                var component_green = data.ratio;
+                var component_red = data.ratio;
+                var component_blue = data.ratio;
+
+                var analysis = paler_analysis(data);
+
+                if(estimation_method == "a12")
+                {
+                    component_blue = 128;
+                }
+
+                if (analysis.ok)
+                    component_green = 255;
+                else
+                    component_red = 255;
+
+                return "rgb(" + to_rgb(component_red) + "," + to_rgb(component_green) + "," + to_rgb(component_blue) + ")";
+            }
+
+            function paler_analysis(data)
+            {
+                var curr_volume = approx_mult_factor(data.y, volume_min);
+                var curr_space = approx_mult_factor(data.x, space_min);
+
+                var vol_min_depth = Math.floor(volume_min / curr_space);
+                if(volume_min % curr_space != 0)
+                {
+                    vol_min_depth++;
+                }
+
+                var volume_in_case_no_depth_scale = space_min * vol_min_depth;
+                var threshold = Math.floor(curr_volume / volume_in_case_no_depth_scale);
+                if(curr_volume % volume_in_case_no_depth_scale != 0)
+                {
+                    threshold++;
+                }
+                
+                /*
+                    Check if the volume of the computed threshold implies a distance that is equal to the threshold
+                */
+                var recomputed_volume = volume_in_case_no_depth_scale * threshold;
+                var recalc = calculate_total(recomputed_volume, space_min, total_failure_rate, phys_error_rate);
+
+                var ret = {
+                    dist: recalc.dist,
+                    ok: (recalc.dist <= threshold),
+                    threshold: threshold,
+                    volume: recomputed_volume
+                }
+
+                return ret;
+            }
+
             function handleMouseOver(data, param2)
             {
                 var curr_volume = approx_mult_factor(data.y, volume_min);
@@ -187,9 +249,9 @@
                 output.innerHTML = "";
 
                 if(data.ratio <= 1)
-                    output.style.color = "green";
+                    output.style.color = "blue";
                 else
-                    output.style.color = "red";
+                    output.style.color = "orange";
 
                 output.innerHTML += data.x + " " + data.y + "->" + data.ratio + "<br>";
                 output.innerHTML += "distance vol: " + data.dist_opt_vol + " having a hardware footprint of " + curr_space + " log qubits <br>";
@@ -202,174 +264,190 @@
                 output.innerHTML += "qub vol: " + data.nr_target_vol + "<br>";
                 output.innerHTML += "qub spc: " + data.nr_target_space + "<br>";
 
-
-                var vol_min_depth = Math.floor(volume_min / curr_space);
-                if(volume_min % curr_space != 0)
+                var ret = paler_analysis(data);
+                output.innerHTML += "paler tradeoff time scaling threshold<br>" + ret.threshold + "<br>";
+                if(ret.ok)
                 {
-                    vol_min_depth++;
+                    output.innerHTML += "OK " + ret.dist + " " + ret.volume;
                 }
-
-                var volume_in_case_no_depth_scale = space_min * vol_min_depth;
-
-                var threshold = Math.floor(curr_volume / volume_in_case_no_depth_scale);
-                if(curr_volume % volume_in_case_no_depth_scale)
+                else
                 {
-                    threshold++;
+                    output.innerHTML += "Not OK " + ret.dist + " " + ret.volume;
                 }
-                output.innerHTML += "paler tradeoff time scaling threshold<br>" + threshold + "<br>";
             }
 
-            var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-            // console.log(calc_distance(0.01,0.008,1000))
-            /*
-                D3
-            */
-            var itemSize = 5;
-            var cellSize = itemSize+1; // make them slightly overlap so there are no lines
-            var margin = {top: 20, right: 20, bottom: 80, left: 80};
+            function init_plotting_area_and_data(plot_name)
+            {
+                /*
+                    D3
+                */
+                var itemSize = 5;
+                var cellSize = itemSize + 1; // make them slightly overlap so there are no lines
+                var margin = {top: 20, right: 20, bottom: 80, left: 80};
+                
+                var width = 650 - margin.right - margin.left;
+                var height = 650 - margin.top - margin.bottom;
+
+                // use for better axis formating
+                var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
+                    formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); },
+                    formatTick = function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); };
+
+                var xScale = d3.scale.linear()
+                    .domain([global_s[0],global_s[global_s.length-1]])
+                    .range([0, global_s.length * itemSize]);
+
+                var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom");
+
+                var yScale = d3.scale.log()
+                    .domain([global_v[0],global_v[global_v.length-1]])
+                    .range([global_v.length * itemSize,0]);
+
+                var yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
+                    .orient("left");
+
+                var svg = d3.select(plot_name).append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("id", "plotsvg" + plot_name.replace(".", ""))
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .attr("transform", "translate(-2, " + (cellSize/2) + ")")
+                    .call(yAxis)
+                    .selectAll('text')
+                    .attr('font-weight', 'normal');
+
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(" + (cellSize/2) + ", " + ((global_v.length + 1) * itemSize + 2 ) + ")")
+                    .call(xAxis)
+                    .selectAll('text')
+                    .attr('font-weight', 'normal')
+                    .style("text-anchor", "start");
+
+                // now add titles to the axes
+                var movey = (global_v.length + 1) * itemSize;
+                var movex = (global_s.length + 1) * itemSize;
+
+                svg.append("text")
+                    .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+                    .attr("transform", "translate(" + (-margin.left/2) + "," + (movex/2) + ")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+                    .text("Volume Factor");
+
+                svg.append("text")
+                    .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+                    .attr("transform", "translate("+ (movex/2) + "," + (movey + (margin.bottom / 2)) + ")")  // centre below axis
+                    .text("Space Factor");
+                    var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+
+                d3.select('#plotsvg' + plot_name.replace(".", "")).selectAll('rect')
+                    .data(data)
+                    .enter().append('g').append('rect')
+                    .attr('class', 'cell')
+                    .attr('width', cellSize)
+                    .attr('height', cellSize)
+                    .attr('y', function(d) { return yScale(d.y); })
+                    .attr('x', function(d) { return xScale(d.x); })
+                    .attr('fill', function(d) {return paler_color_interpretation(d);})
+                    .on('mouseover', handleMouseOver);
+
+                return 0;
+            }
             
-            var width = 650 - margin.right - margin.left;
-            var height = 650 - margin.top - margin.bottom;
-
-            // use for better axis formating
-            var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
-                formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); },
-                formatTick = function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); };
-
-
-            var xScale = d3.scale.linear()
-                .domain([global_s[0],global_s[global_s.length-1]])
-                .range([0, global_s.length * itemSize]);
-
-            var xAxis = d3.svg.axis()
-                .scale(xScale)
-                .orient("bottom");
-
-            var yScale = d3.scale.log()
-                .domain([global_v[0],global_v[global_v.length-1]])
-                .range([global_v.length * itemSize,0]);
-
-            var yAxis = d3.svg.axis()
-                .scale(yScale)
-                .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
-                .orient("left");
-
-            var svg = d3.select('.plot')
-                .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
-            var cells = svg.selectAll('rect')
-                .data(data)
-                .enter().append('g').append('rect')
-                .attr('class', 'cell')
-                .attr('width', cellSize)
-                .attr('height', cellSize)
-                .attr('y', function(d) { return yScale(d.y); })
-                .attr('x', function(d) { return xScale(d.x); })
-                .attr('fill', function(d) {return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";})
-                .on('mouseover', handleMouseOver);
-
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .attr("transform", "translate(0, " + (cellSize/2) + ")")
-                .call(yAxis)
-                .selectAll('text')
-                .attr('font-weight', 'normal');
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(" + (cellSize/2) + ", " + (global_v.length + 1) * itemSize + ")")
-                .call(xAxis)
-                .selectAll('text')
-                .attr('font-weight', 'normal')
-                .style("text-anchor", "start");
-
-            // now add titles to the axes
-            var movey = (global_v.length + 1) * itemSize;
-            var movex = (global_s.length + 1) * itemSize;
-
-            svg.append("text")
-                .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-                .attr("transform", "translate("+ (-margin.left/2) +","+(movex/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
-                .text("Volume Factor");
-
-            svg.append("text")
-                .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-                .attr("transform", "translate("+ (movex/2) +","+(movey + (margin.bottom / 2))+")")  // centre below axis
-                .text("Space Factor");
-        </script>
-
-        <script>
             function update_data()
             {
-                var data = gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+                
+                for(var index in plot_names)
+                {
+                    var plot_name = plot_names[index];
 
-                svg.selectAll("rect")
-                    .data(data)
-                    .transition().duration(1000)
-                    .style("fill", function(d) {return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";});
+                    var data = plot_generators[plot_name](total_failure_rate, volume_min, space_min, phys_error_rate);
+
+                    d3.select(plot_name).selectAll("rect")
+                        .data(data)
+                        .transition().duration(1000)
+                        .style("fill", function(d) {return paler_color_interpretation(d);});
+                }
+
+                return 0;
             }
 
-            /*
-                Update functions
-            */
-            function update_error(new_value)
+            function add_event_handlers()
             {
-                phys_error_rate = new_value;
-                update_data();
-            }
+                var slider1 = document.getElementById("myRange1");
+                var slider2 = document.getElementById("myRange2");
+                var slider3 = document.getElementById("myRange3");
 
+                /*
+                    Configure default values
+                */
+                slider1.value = volume_min;
+                slider2.value = space_min;
+                slider3.value = phys_error_rate;
 
-            function update_space(new_value)
-            {
-                space_min = new_value;
-                update_data();
-            }
+                var output1 = document.getElementById("r1_value");
+                output1.innerHTML = slider1.value; // Display the default slider value
 
+                var output2 = document.getElementById("r2_value");
+                output2.innerHTML = slider2.value; // Display the default slider value
 
-            function update_volume(new_value)
-            {
-                volume_min = new_value;
-                update_data();
+                var output3 = document.getElementById("r3_value");
+                output3.innerHTML = slider3.value; // Display the default slider value
+
+                // Update the current slider value (each time you drag the slider handle)
+                slider1.oninput = function() {
+                    volume_min = this.value;
+                    update_data();
+
+                    output1.innerHTML = volume_min;
+                }
+
+                // Update the current slider value (each time you drag the slider handle)
+                slider2.oninput = function() {
+                    space_min = this.value;
+                    update_data();
+
+                    output2.innerHTML = space_min;
+                } 
+
+                // Update the current slider value (each time you drag the slider handle)
+                slider3.oninput = function() {
+                    phys_error_rate = this.value;
+                    update_data();
+
+                    output3.innerHTML = phys_error_rate;
+                }  
+
+                var selectestimation = document.getElementById("selectestimation");
+                selectestimation.onchange = function(){
+                    estimation_method = this.value;
+
+                    update_data();
+                }
             }
         </script>
 
         <script>
-            /*Event handlers for html elements*/
-            var slider1 = document.getElementById("myRange1");
-            var output1 = document.getElementById("r1_value");
-            output1.innerHTML = slider1.value; // Display the default slider value
+            /*
+                MAIN
+            */
+            add_event_handlers()
 
-            var slider2 = document.getElementById("myRange2");
-            var output2 = document.getElementById("r2_value");
-            output2.innerHTML = slider2.value; // Display the default slider value
+            plot_names = [".plot1", ".plot2"];
 
-            var slider3 = document.getElementById("myRange3");
-            var output3 = document.getElementById("r3_value");
-            output3.innerHTML = slider3.value; // Display the default slider value
+            plot_generators[".plot1"] = gen_data;//(total_failure_rate, volume_min, space_min, p_err);
+            plot_generators[".plot2"] = gen_data;//(total_failure_rate, volume_min, space_min, p_err);
 
-            // Update the current slider value (each time you drag the slider handle)
-            slider1.oninput = function() {
-                output1.innerHTML = this.value;
-                update_volume(this.value);
-            } 
-
-            // Update the current slider value (each time you drag the slider handle)
-            slider2.oninput = function() {
-                output2.innerHTML = this.value;
-                update_space(this.value);
-            } 
-
-            // Update the current slider value (each time you drag the slider handle)
-            slider3.oninput = function() {
-                output3.innerHTML = this.value;
-                update_error(this.value);
-            }
+            for(var index in plot_names)
+                init_plotting_area_and_data(plot_names[index]);
+            
         </script>
     </body>
 </html>

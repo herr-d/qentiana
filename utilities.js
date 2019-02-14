@@ -1,6 +1,12 @@
 /*
 Utility functions
 */
+function approx_mult_factor(factor, value)
+{
+    // return Math.round(factor * value)
+    return Math.ceil(factor * value);
+}
+
 function local_logspace(start, stop, num=50)
 {
     //assume base = 10
