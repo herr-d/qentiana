@@ -3,18 +3,20 @@
 
 function austin_p_logical(p_gate, d)
 {
-    return 0.1 * Math.pow((100 * p_gate), ((d + 1) / 2));
+    return 0.1 * Math.pow((100*p_gate), ((d + 1) / 2));
 }
 
 
 function austin_distance(p_gate, p_l)
 {
+    var min_dist = 3;
+    var max_dist = 1000;
     var d = 3;
-    while (austin_p_logical(p_gate, d) > p_l)
-    {
-        d = d + 2;
+    for (var d = min_dist; d <= max_dist; d= d+2){
+        if(austin_p_logical(p_gate, d) < p_l)
+            return d;
     }
-    return d;
+    return 0;
 }
 
 function austin_data_qubits(space, total_volume, safety_factor, characteristic_gate_error_rate)
