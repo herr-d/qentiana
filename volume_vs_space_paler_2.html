@@ -291,14 +291,31 @@
 
 
             // draw lines
-            xarray = local_linspace(0.01, 2, nr_items)
-            var line = d3.svg.line()
+            xarray1 = local_linspace(0.01, 2, nr_items)
+            var line1 = d3.svg.line()
             .x(function(d,i) {
                 return xScale(d);})
             .y(function(d,i) {
-                return yScale(1/(Math.pow(d,4)));});
+                return yScale(1/(Math.pow(d,3.5)));});
 
-            svg.append("svg:path").attr("d", line(xarray));
+            xarray2 = [0.01,100]
+            var line2 = d3.svg.line()
+            .x(function(d,i) {
+                return xScale(1);})
+            .y(function(d,i) {
+                return yScale(d);});
+
+            xarray3 = [0.01,2]
+            var line3 = d3.svg.line()
+            .x(function(d,i) {
+                return xScale(d);})
+            .y(function(d,i) {
+                return yScale(1);});
+
+
+            svg.append("svg:path").attr("d", line1(xarray1));
+            svg.append("svg:path").attr("d", line2(xarray2));
+            svg.append("svg:path").attr("d", line3(xarray3));
 
             // now add titles to the axes
             var movey = (global_v.length + 1) * itemSize;
