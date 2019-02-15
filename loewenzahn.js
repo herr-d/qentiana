@@ -97,7 +97,7 @@ Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_m
                 x: this.global_s[j],
                 y: this.global_v[i],
                 dist : dist,
-                indiv_err : indiv_err,
+                indiv_error : indiv_err,
                 total_volume : volume_param,
                 qubits_used : number_of_physical_qubits(dist, space_param),
                 total_error: P_out
@@ -110,7 +110,7 @@ Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_m
 
 Loewenzahn.prototype.color_interpretation = function(d)
 {
-    return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";
+    return "rgb(" + to_rgb(d.total_error) + "," + to_rgb(d.total_error) + "," + to_rgb(d.total_error) + ")";
 }
 
 Loewenzahn.prototype.init_visualisation = function()

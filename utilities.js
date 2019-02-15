@@ -126,7 +126,7 @@ function create_parameter(elem_name, param_name, param_default_value)
     divcont.appendChild(document.createTextNode(param_name));
 
     var input = document.createElement("input");
-    input.setAttribute("onchange", "update_data()");
+    input.setAttribute("onchange", "update_plots()");
     input.setAttribute("type", "number");
     input.setAttribute("step", "1");
     input.setAttribute("id", elem_name + "_" + param_name);

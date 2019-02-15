@@ -80,7 +80,7 @@
     <body>
         <div style="overflow: hidden; ">
             <div style="float: left">
-                <img src="enzian.png" height="80">
+                <img src="enzian.png" height="80" style="transform: scaleX(-1);">
             </div>
             <div style="float: left">
                 <h3>Qentiana #=- Tradeoff Analysis -=#</h3>
@@ -182,11 +182,12 @@
                 // clean console
                 output.innerHTML = "";
 
+                output.style.color = "black";
 
-                output.innerHTML += "Distance at point (" + data.x + ", " + data.y + "): " + data.dist + " <br>";
-                output.innerHTML += "error rate in unit cell: " + data.indiv_error + " with a tota volume of " + data.total_volume + "<br>";
+                output.innerHTML += "Distance at point (" + data.x + ", " + data.y + "): <br>" + data.dist + " <br>";
+                output.innerHTML += "error rate in unit cell: " + data.indiv_error + " with a total volume of " + data.total_volume + "<br>";
 
-                output.innerHTML += "Total success probability: " + data.P_out + "<br>";
+                output.innerHTML += "Total success probability: " + data.total_error + "<br>";
 
             }
 
