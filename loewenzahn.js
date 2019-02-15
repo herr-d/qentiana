@@ -128,7 +128,6 @@ Loewenzahn.prototype.init_visualisation = function()
         .attr("id", "plotsvg" + ref.plot_name.replace(".", ""))
         .attr("transform", "translate(" + ref.options.margin.left + "," + ref.options.margin.top + ")");
 
-    // var data = plot_generators[plot_name](total_failure_rate, volume_min, space_min, phys_error_rate);
     var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
 
     d3.select('#plotsvg' + ref.plot_name.replace(".", "")).selectAll('rect')
@@ -189,4 +188,15 @@ Loewenzahn.prototype.init_visualisation = function()
         .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
         .attr("transform", "translate("+ (movex/2) +","+(movey + (ref.options.margin.bottom / 2))+")")  // centre below axis
         .text("Space Factor");
+}
+
+Loewenzahn.prototype.update_data = function()
+{
+    var ref = this;
+
+    var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+    d3.select(this.plot_name).selectAll("rect")
+        .data(data)
+        .transition().duration(1000)
+        .style("fill", function(d) {return ref.color_interpretation(d);});
 }

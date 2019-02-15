@@ -165,3 +165,14 @@ Maigloeckchen.prototype.color_interpretation = function(d)
 {
     return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";
 }
+
+Maigloeckchen.prototype.update_data = function()
+{
+    var ref = this;
+
+    var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+    d3.select(this.plot_name).selectAll("rect")
+        .data(data)
+        .transition().duration(1000)
+        .style("fill", function(d) {return ref.color_interpretation(d);});
+}

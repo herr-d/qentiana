@@ -21,6 +21,7 @@
         <script src="maigloeckchen.js"></script>
         <script src="schneegloeckchen.js"></script>
         <script src="loewenzahn.js"></script>
+        <script src="gaensebluemchen.js"></script>
 
         <script>
             // //
@@ -77,6 +78,9 @@
         </script>
     </head>
     <body>
+        <div class="chart" style="width: 100%; text-align: center">
+            <h3>Qenzian #=- Tradeoff Analysis -=#</h3>
+        </div>
         <div id="controls" style="font-size:10pt">
                 <!-- #slider error rate -->
                 <div class="slidecontainer">
@@ -110,7 +114,11 @@
                     <!-- Here should be the plot -->
             </div>
 
-            <div id="console" style="font-size:9pt; height:450px; width: 450px; background-color: antiquewhite;overflow: hidden;">
+            <div class="plot5 chart" style="float: left">
+                    <!-- Here should be the plot -->
+            </div>
+
+            <div id="console" class="chart" style="font-size:9pt; height:450px; width: 450px; background-color: antiquewhite;overflow: hidden;">
             </div>
         </div>
 
@@ -159,18 +167,12 @@
                 }
             }
 
-            function update_data()
+            function update_plots()
             {
                 for(var index in plot_names)
                 {
                     var plot_name = plot_names[index];
-                    // console.log(plot_name);
-
-                    var data = plot_objects[plot_name].gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-                    d3.select(plot_name).selectAll("rect")
-                        .data(data)
-                        .transition().duration(1000)
-                        .style("fill", function(d) {return plot_objects[plot_name].color_interpretation(d);});
+                    var data = plot_objects[plot_name].update_data();
                 }
 
                 return 0;
@@ -201,7 +203,7 @@
                 // Update the current slider value (each time you drag the slider handle)
                 slider1.oninput = function() {
                     volume_min = this.value;
-                    update_data();
+                    update_plots();
 
                     output1.innerHTML = volume_min;
                 }
@@ -209,7 +211,7 @@
                 // Update the current slider value (each time you drag the slider handle)
                 slider2.oninput = function() {
                     space_min = this.value;
-                    update_data();
+                    update_plots();
 
                     output2.innerHTML = space_min;
                 } 
@@ -217,7 +219,7 @@
                 // Update the current slider value (each time you drag the slider handle)
                 slider3.oninput = function() {
                     phys_error_rate = this.value;
-                    update_data();
+                    update_plots();
 
                     output3.innerHTML = phys_error_rate;
                 }  
@@ -230,16 +232,18 @@
             */
             add_event_handlers();
 
-            plot_names = [".plot1", ".plot2", ".plot3", ".plot4"];
+            plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];
 
             plot_objects[".plot1"] = new Schneegloeckchen(".plot1", vis_options, "a12");
             plot_objects[".plot2"] = new Schneegloeckchen(".plot2", vis_options, "a18");
             plot_objects[".plot3"] = new Maigloeckchen(".plot3", vis_options, "a18");
             plot_objects[".plot4"] = new Loewenzahn(".plot4", vis_options, "a18");
+            plot_objects[".plot5"] = new Gaensebluemchen(".plot5", vis_options, "a18");
 
             for(var index in plot_names)
             {
                 var pl_name = plot_names[index];
+
                 plot_objects[pl_name].init_visualisation();
             }
         </script>

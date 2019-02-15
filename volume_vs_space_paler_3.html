@@ -264,8 +264,10 @@ function draw_line_plot(data, svg){
             svg.selectAll(".line_plot").remove();
             svg.selectAll(".vertical_line").remove();
             draw_line_plot(out.data, svg);
-            console.log(y_axis[0])
-            console.log(out.dist_changes[0])
+
+            // console.log(y_axis[0])
+            // console.log(out.dist_changes[0])
+            
             for (var i = out.dist_changes.length - 1; i >= 0; i--) {
                 draw_vertical_line(y_axis[y_axis.length -1], y_axis[0],out.dist_changes[i].x)
             }
