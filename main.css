@@ -45,3 +45,11 @@ path {
   color: #1a2e58;
   font-family: 'Courier New', Courier, monospace;
 }
+
+.vertical_line{
+  stroke: orange;
+}
+
+.line_plot{
+  stroke-width: 3;
+}

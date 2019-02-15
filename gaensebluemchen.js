@@ -34,7 +34,7 @@ function Gaensebluemchen(name, vis_options, estimation_method)
         .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
         .orient("left");
 
-    this.explanation = "Tradeoff U and U";
+    this.explanation = "Tradeoff between volume and total number of physical qubits. Vertical lines are changes in distance.";
     create_description(this.plot_name.replace(".", ""), this.explanation);
 }
 
@@ -169,10 +169,10 @@ Gaensebluemchen.prototype.update_data = function()
     d3.select(this.plot_name).selectAll(".line_plot").remove();
     d3.select(this.plot_name).selectAll(".vertical_line").remove();
 
-    this.draw_line_plot(out.data);
-
     for (var i = out.dist_changes.length - 1; i >= 0; i--)
     {
         this.draw_vertical_line(this.y_axis[this.y_axis.length - 1], this.y_axis[0], out.dist_changes[i].x)
     }
+
+    this.draw_line_plot(out.data);
 }
