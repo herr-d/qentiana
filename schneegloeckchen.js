@@ -35,7 +35,7 @@ function Schneegloeckchen(name, vis_options, estimation_method)
         .orient("left");
 
 
-    this.explanation = "Tradeoff between X and Y";
+    this.explanation = "Comparison of two different optimization heuristics (time and space). In blue/green areas space optimization is better compared to the time optimization. Purple/red areas are not self-consistent (not allowed) and in white areas the time optimization is superior.";
     create_description(this.plot_name.replace(".", ""), this.explanation);
 }
 

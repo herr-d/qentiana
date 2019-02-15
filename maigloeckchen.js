@@ -34,7 +34,7 @@ function Maigloeckchen(name, vis_options, estimation_method)
         .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
         .orient("left");
 
-    this.explanation = "Tradeoff between X and Z";
+    this.explanation = "The initial circuit is at position (1,1) and any optimization will change the volume and space factor. The final position will show how much resource savings can be expected. Darker colors are better.";
     create_description(this.plot_name.replace(".", ""), this.explanation);
 }
 
