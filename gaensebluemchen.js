@@ -100,7 +100,9 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         var space_3 = space_2;//because time was scaled due to data bus
         var ret_vol_3 = calculate_total(this.estimation_method, volume_3, space_3, total_failure_rate, p_err);
 
-        if((ret_vol_3.dist <= ret_vol_2.dist) && (ret_vol_3.number_of_physical_qubits <= ret.number_of_physical_qubits))
+        // if(ret_vol_3.dist <= ret_vol_2.dist)
+        // if(ret_vol_3.dist <= ret.dist)
+        if((ret_vol_3.number_of_physical_qubits < ret.number_of_physical_qubits) && (ret_vol_3.dist <= ret_vol_2.dist))
         {
             to_save_nr_qubits = ret_vol_3.number_of_physical_qubits;
             use_data_bus = true;
@@ -116,11 +118,18 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         {
             var increased_distance = ret.dist + 2;
             var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
+            
+            var volume_inc_distance = volume_2 * increased_distance;
+            var ret_4 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
+                        
             if(qubits_inc_dist < ret.number_of_physical_qubits)
             {
-                /*this number was calculated for the full layout without data bus*/
-                to_save_nr_qubits = qubits_inc_dist;
-                use_data_bus = true;
+                if(ret_4.dist <= increased_distance)
+                {
+                    /*this number was calculated for the full layout without data bus*/
+                    to_save_nr_qubits = qubits_inc_dist;
+                    use_data_bus = true;
+                }
             }
         }
 

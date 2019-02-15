@@ -6,7 +6,6 @@ function austin_p_logical(p_gate, d)
     return 0.1 * Math.pow((100*p_gate), ((d + 1) / 2));
 }
 
-
 function austin_distance(p_gate, p_l)
 {
     var min_dist = 3;
@@ -18,12 +17,18 @@ function austin_distance(p_gate, p_l)
             return d;
         }
     }
+    console.log("Austin_distance_error!" + p_gate + " " + p_l);
     return 0;
 }
 
 function austin_data_qubits(space, total_volume, safety_factor, characteristic_gate_error_rate)
 {
     var target_error_per_data_round = 1 / (safety_factor * total_volume);
+
+    if(target_error_per_data_round == 0)
+    {
+        console.log("FLOAT ZERO!" + total_volume);
+    }
     
     var data_code_distance = austin_distance(characteristic_gate_error_rate, target_error_per_data_round);
     var num_data_qubits = space * 2 * Math.pow(data_code_distance, 2);

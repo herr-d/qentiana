@@ -256,13 +256,15 @@
             */
             add_event_handlers();
 
-            plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];
+            // plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];
+
+            plot_names = [".plot5"];
 
             plot_objects[".plot1"] = new Schneegloeckchen(".plot1", vis_options, "a12");
             plot_objects[".plot2"] = new Schneegloeckchen(".plot2", vis_options, "a18");
             plot_objects[".plot3"] = new Maigloeckchen(".plot3", vis_options, "a18");
             plot_objects[".plot4"] = new Loewenzahn(".plot4", vis_options, "a18");
-            plot_objects[".plot5"] = new Gaensebluemchen(".plot5", vis_options, "a18");
+            plot_objects[".plot5"] = new Gaensebluemchen(".plot5", vis_options, "a12");
 
             for(var index in plot_names)
             {

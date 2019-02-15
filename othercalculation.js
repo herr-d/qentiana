@@ -17,9 +17,9 @@ function calc_distance(p_err_out, p_cycle, spacetime_volume)
     // is given by less than p_err_out. Given an error rate per step of p_cycle.  
     // python range is < or <=?
     var min_dist = 3;
-    var max_dist = 99;
+    var max_dist = 1000;
 
-    for (var d = min_dist; d <= max_dist; d++)
+    for (var d = min_dist; d <= max_dist; d+=2)
     {
         var log_err_prob = logical_error_probability(d, p_cycle);
         var val_to_compare = 1 - Math.pow(( 1 - log_err_prob), spacetime_volume);
@@ -31,6 +31,7 @@ function calc_distance(p_err_out, p_cycle, spacetime_volume)
     }
 
     // "Could not find a suitable distance"
+    console.log("error");
     return -1;
 }
 
