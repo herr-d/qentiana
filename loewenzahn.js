@@ -96,11 +96,11 @@ Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_m
             data.push({
                 x: this.global_s[j],
                 y: this.global_v[i],
-                dist_opt_vol : dist,
-                dist_opt_space : indiv_err,
-                nr_target_vol : volume_param,
-                nr_target_space : number_of_physical_qubits(dist, space_param),
-                ratio: P_out
+                dist : dist,
+                indiv_err : indiv_err,
+                total_volume : volume_param,
+                qubits_used : number_of_physical_qubits(dist, space_param),
+                total_error: P_out
             })
         }
     }
@@ -139,7 +139,7 @@ Loewenzahn.prototype.init_visualisation = function()
         .attr('y', function(d) { return ref.yScale_local(d.y); })
         .attr('x', function(d) { return ref.xScale_local(d.x); })
         .attr('fill', function(d) {return ref.color_interpretation(d);})
-        .on('mouseover', cleanMouseOver.bind(ref) );
+        .on('mouseover', handle_new.bind(ref) );
 
     svg.append("g")
         .attr("class", "y axis")
