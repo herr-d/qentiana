@@ -5,7 +5,8 @@ function Gaensebluemchen(name, vis_options, estimation_method)
     */
     this.nr_items = 100;
     // log spaced volume scaling factor
-    this.global_v = local_linspace(0.01, 100, this.nr_items);
+    // this.global_v = local_linspace(0.01, 150, this.nr_items);
+    this.global_v = local_linspace(1, 1000, this.nr_items);
     // scaling factor space
     this.y_axis = local_logspace(1, 5, this.nr_items);
     // name of the div
@@ -23,6 +24,7 @@ function Gaensebluemchen(name, vis_options, estimation_method)
 
     this.xAxis = d3.svg.axis()
         .scale(ref.xScale)
+        // .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
         .orient("bottom");
 
     this.yScale = d3.scale.log()
@@ -36,10 +38,20 @@ function Gaensebluemchen(name, vis_options, estimation_method)
 
     this.explanation = "Tradeoff between volume and total number of physical qubits. Vertical lines are changes in distance.";
     create_description(this.plot_name.replace(".", ""), this.explanation);
+
+    this.parameters = {};
+    this.parameters["scaling_factor"] = 1.5;
+    for(key in this.parameters)
+    {
+        create_parameter(this.plot_name.replace(".", ""), key, this.parameters[key]);
+    }
 }
 
 Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, space_min, p_err)
 {
+    this.collect_parameters();
+    var factor = this.parameters["scaling_factor"];
+    
     var data = new Array(); // stores the line plot for no physical qubits
     var dist_changes = new Array(); // stores the volume factors for which the distance changes
     
@@ -49,7 +61,8 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
 
     for (var i=0; i<this.global_v.length; i++)
     {
-        volume_param = volume_min * this.global_v[i];
+        volume_param = approx_mult_factor(volume_min, this.global_v[i]);
+
         //maybe change names for this data array because different meaning of output
         ret = calculate_total(this.estimation_method, volume_param, space_min, total_failure_rate, p_err);
         
@@ -61,11 +74,53 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         }
         
         dist_last = ret.dist;
-        
+
+        var to_save_nr_qubits = ret.number_of_physical_qubits;
+        var use_data_bus = false;
+        /*
+            adaptation begin
+        */
+        var volume_2 = approx_mult_factor(volume_param,  (1/factor));
+        var space_2 = approx_mult_factor(space_min,  (1/factor));
+        var ret_vol_2 = calculate_total(this.estimation_method, volume_2, space_2, total_failure_rate, p_err);
+
+        var volume_3 = approx_mult_factor(volume_2, ret_vol_2.dist);//multiply because of data bus
+        var space_3 = space_2;//because time was scaled due to data bus
+        var ret_vol_3 = calculate_total(this.estimation_method, volume_3, space_3, total_failure_rate, p_err);
+
+        if(ret_vol_3.dist <= ret.dist)
+        {
+            to_save_nr_qubits = ret_vol_2.number_of_physical_qubits;
+            use_data_bus = true;
+        }
+        /*
+            adaptation end
+        */
+
+        /*
+            Increase distance to lower res with data bus
+        */
+        if(use_data_bus == false)
+        {
+            var increased_distance = ret.dist + 2;
+            var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
+            if(qubits_inc_dist < ret.number_of_physical_qubits)
+            {
+                /*this number was calculated for the full layout without data bus*/
+                to_save_nr_qubits = qubits_inc_dist;
+                use_data_bus = true;
+            }
+        }
+
+       /*
+            -------------
+       */
+
         data.push({
             x: this.global_v[i],
-            number_of_physical_qubits: ret.number_of_physical_qubits,
-            dist: ret.dist
+            number_of_physical_qubits: to_save_nr_qubits,
+            dist: ret.dist,
+            use_data_bus: use_data_bus
         })
     }
 
@@ -109,10 +164,11 @@ Gaensebluemchen.prototype.draw_line_plot = function(data)
 {
     var ref = this;
     var line = d3.svg.line()
-        .x(function(d,i) {
+        .x(function(d, i) {
             return ref.xScale(d.x);})
-        .y(function(d,i) {
-            return ref.yScale(d.number_of_physical_qubits);});
+        .y(function(d, i) {
+            // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
+            return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
 
     d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line(data));
 }
@@ -160,6 +216,17 @@ Gaensebluemchen.prototype.init_visualisation = function()
         .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
         .attr("transform", "translate("+ (movex/2) +","+(movey + (ref.options.margin.bottom / 2))+")")  // centre below axis
         .text("Volume Factor");
+}
+
+Gaensebluemchen.prototype.collect_parameters = function()
+{
+     /*
+        Collect from the field
+    */
+   for(key in this.parameters)
+   {
+       this.parameters[key] = document.getElementById(this.plot_name.replace(".", "") + "_" + key).value;
+   }
 }
 
 Gaensebluemchen.prototype.update_data = function()
