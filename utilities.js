@@ -94,3 +94,44 @@ function from_rgb(param)
     var ret = (param == 255 ? 2 : param / 255);
     return ret;
 }
+
+function create_description(elem_name, text)
+{
+    // this.explanation = "Given a fixed number of physical qubits, what is the total success probability? The higher the probability the lighter color.";
+
+    var desc = document.createElement("div");
+
+    desc.appendChild(document.createTextNode(text));
+    desc.appendChild(document.createElement("br"));
+    desc.setAttribute("class", "description");
+    
+    var alink = document.createElement("a");
+    alink.setAttribute("href", "#");
+    alink.setAttribute("onclick", "save_as_svg(\"" + elem_name + "\")");
+    alink.innerHTML = "Download SVG";
+    desc.appendChild(alink);
+
+    var container = document.getElementsByClassName(elem_name)[0];
+    container.appendChild(desc);
+}
+
+function create_parameter(elem_name, param_name, param_default_value)
+{
+    var container = document.getElementsByClassName(elem_name)[0];
+
+    container.appendChild(document.createElement("br"));
+
+    var divcont = document.createElement("div");
+    divcont.setAttribute("class", "description");
+    divcont.appendChild(document.createTextNode(param_name));
+
+    var input = document.createElement("input");
+    input.setAttribute("onchange", "update_data()");
+    input.setAttribute("type", "number");
+    input.setAttribute("step", "1");
+    input.setAttribute("id", elem_name + "_" + param_name);
+    input.setAttribute("value", param_default_value);
+
+    divcont.appendChild(input);
+    container.appendChild(divcont);
+}

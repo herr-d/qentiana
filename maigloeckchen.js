@@ -35,12 +35,9 @@ function Maigloeckchen(name, vis_options, estimation_method)
         .orient("left");
 
     this.explanation = "Tradeoff between X and Z";
-    var container = document.getElementsByClassName(this.plot_name.replace(".", ""))[0];
-    container.innerHTML += "<p>" + this.explanation;
-    container.innerHTML += "<a href=\"#\" onclick=\"save_as_svg('" + this.plot_name.replace(".", "") +"')\"> Download SVG</a></p>";
+    create_description(this.plot_name.replace(".", ""), this.explanation);
 }
 
-// Maigloeckchen.prototype.init_visualisation = function(plot_generators, plot_color_coding, plot_event_handlers)
 Maigloeckchen.prototype.init_visualisation = function()
 {
     /*
@@ -87,12 +84,12 @@ Maigloeckchen.prototype.init_visualisation = function()
 
 
     // draw lines
-    xarray1 = local_linspace(0.01, 2, this.nr_items)
-    var line1 = d3.svg.line()
-    .x(function(d,i) {
-        return ref.xScale_local(d);})
-    .y(function(d,i) {
-        return ref.yScale_local(1/(Math.pow(d,3.5)));});
+    // xarray1 = local_linspace(0.01, 2, this.nr_items)
+    // var line1 = d3.svg.line()
+    // .x(function(d,i) {
+    //     return ref.xScale_local(d);})
+    // .y(function(d,i) {
+    //     return ref.yScale_local(1/(Math.pow(d,3.5)));});
 
     xarray2 = [0.01,100]
     var line2 = d3.svg.line()
@@ -108,8 +105,7 @@ Maigloeckchen.prototype.init_visualisation = function()
     .y(function(d,i) {
         return ref.yScale_local(1);});
 
-
-    svg.append("svg:path").attr("d", line1(xarray1));
+    // svg.append("svg:path").attr("d", line1(xarray1));
     svg.append("svg:path").attr("d", line2(xarray2));
     svg.append("svg:path").attr("d", line3(xarray3));
 

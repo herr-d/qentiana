@@ -36,9 +36,7 @@ function Schneegloeckchen(name, vis_options, estimation_method)
 
 
     this.explanation = "Tradeoff between X and Y";
-    var container = document.getElementsByClassName(this.plot_name.replace(".", ""))[0];
-    container.innerHTML += "<p>" + this.explanation;
-    container.innerHTML += "<a href=\"#\" onclick=\"save_as_svg('" + this.plot_name.replace(".", "") +"')\"> Download SVG</a></p>";
+    create_description(this.plot_name.replace(".", ""), this.explanation);
 }
 
 Schneegloeckchen.prototype.init_visualisation = function()

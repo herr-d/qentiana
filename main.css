@@ -37,4 +37,11 @@ path {
   border-style: dotted;
   border-width: 5px;
   border-color: #1a2e58;
+  width: 450px;
+}
+
+.description{
+  font-size: 9pt;
+  color: #1a2e58;
+  font-family: 'Courier New', Courier, monospace;
 }

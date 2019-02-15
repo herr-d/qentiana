@@ -20,6 +20,7 @@
         <!-- Visualisations-->
         <script src="maigloeckchen.js"></script>
         <script src="schneegloeckchen.js"></script>
+        <script src="loewenzahn.js"></script>
 
         <script>
             // //
@@ -105,11 +106,22 @@
                     <!-- Here should be the plot -->
             </div>
 
-            <div id="console" style="height:650px; width: 650px; background-color: antiquewhite;overflow: hidden;">
+            <div class="plot4 chart" style="float: left">
+                    <!-- Here should be the plot -->
+            </div>
+
+            <div id="console" style="font-size:9pt; height:450px; width: 450px; background-color: antiquewhite;overflow: hidden;">
             </div>
         </div>
 
         <script>
+            function cleanMouseOver(data, param2)
+            {
+                var output = document.getElementById("console");
+                // clean console
+                output.innerHTML = ""; 
+            }
+
             function handleMouseOver(data, param2)
             {
                 var curr_volume = approx_mult_factor(data.y, volume_min);
@@ -218,11 +230,12 @@
             */
             add_event_handlers();
 
-            plot_names = [".plot1", ".plot2", ".plot3"];
+            plot_names = [".plot1", ".plot2", ".plot3", ".plot4"];
 
             plot_objects[".plot1"] = new Schneegloeckchen(".plot1", vis_options, "a12");
             plot_objects[".plot2"] = new Schneegloeckchen(".plot2", vis_options, "a18");
             plot_objects[".plot3"] = new Maigloeckchen(".plot3", vis_options, "a18");
+            plot_objects[".plot4"] = new Loewenzahn(".plot4", vis_options, "a18");
 
             for(var index in plot_names)
             {
