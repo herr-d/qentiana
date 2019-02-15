@@ -55,7 +55,11 @@ Loewenzahn.prototype.get_max_dist_from_qubits = function(logical_qubits, total_p
     if(logical_qubits > total_physical_qubits){
         return -1;
     }
-    return Math.floor(Math.sqrt(total_physical_qubits/logical_qubits));
+    var ret = Math.floor(Math.sqrt(total_physical_qubits/logical_qubits));
+    if (ret <= 2)
+        return 1;
+    
+    return ret;
 }
 
 Loewenzahn.prototype.total_err = function(indiv_err, volume){
