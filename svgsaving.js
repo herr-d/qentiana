@@ -1,8 +1,8 @@
-function storeSVG(svg_container)
-{
-    xmlString = serializer.serializeToString(svg_container.node());
-    imgData = 'data:image/svg+xml;base64,' + btoa(xmlString);
-}
+// function storeSVG(svg_container)
+// {
+//     xmlString = serializer.serializeToString(svg_container.node());
+//     imgData = 'data:image/svg+xml;base64,' + btoa(xmlString);
+// }
 
 function save_as_svg(container_class_name)
 {
@@ -16,5 +16,5 @@ function save_as_svg(container_class_name)
 
     var full_svg = head +  style + svg_data + "</svg>";
     var blob = new Blob([full_svg], {type: "image/svg+xml"});  
-    saveAs(blob, "tradeoff.svg");
+    saveAs(blob, container_class_name.replace(".","") + "_tradeoff.svg");
 }

@@ -1,6 +1,12 @@
 /*
 Utility functions
 */
+
+// use for better axis formating
+var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+var formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
+var formatTick = function(d) { return 10 + (d < 0 ? "⁻":"") + formatPower(Math.round(Math.log(d) / Math.LN10)); };
+
 function approx_mult_factor(factor, value)
 {
     // return Math.round(factor * value)

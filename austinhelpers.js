@@ -11,10 +11,12 @@ function austin_distance(p_gate, p_l)
 {
     var min_dist = 3;
     var max_dist = 1000;
-    var d = 3;
-    for (var d = min_dist; d <= max_dist; d= d+2){
+    for (var d = min_dist; d <= max_dist; d = d+2)
+    {
         if(austin_p_logical(p_gate, d) < p_l)
+        {
             return d;
+        }
     }
     return 0;
 }

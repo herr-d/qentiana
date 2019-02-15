@@ -32,3 +32,9 @@ path {
   font-family: sans-serif;
   font-size: 11px;
 }
+
+.chart {
+  border-style: dotted;
+  border-width: 5px;
+  border-color: #1a2e58;
+}

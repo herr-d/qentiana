@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8"/>
@@ -237,20 +236,20 @@
                 formatTick = function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); };
 
 
-            var xScale = d3.scale.linear()
+            var xScale_local = d3.scale.linear()
                 .domain([global_s[0],global_s[global_s.length-1]])
                 .range([0, global_s.length * itemSize]);
 
             var xAxis = d3.svg.axis()
-                .scale(xScale)
+                .scale(xScale_local)
                 .orient("bottom");
 
-            var yScale = d3.scale.log()
+            var yScale_local = d3.scale.log()
                 .domain([global_v[0],global_v[global_v.length-1]])
                 .range([global_v.length * itemSize,0]);
 
             var yAxis = d3.svg.axis()
-                .scale(yScale)
+                .scale(yScale_local)
                 .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
                 .orient("left");
 
@@ -268,8 +267,8 @@
                 .attr('class', 'cell')
                 .attr('width', cellSize)
                 .attr('height', cellSize)
-                .attr('y', function(d) { return yScale(d.y); })
-                .attr('x', function(d) { return xScale(d.x); })
+                .attr('y', function(d) { return yScale_local(d.y); })
+                .attr('x', function(d) { return xScale_local(d.x); })
                 .attr('fill', function(d) {return "rgb(" + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + "," + to_rgb(d.ratio) + ")";})
                 .on('mouseover', handleMouseOver);
 
@@ -294,23 +293,23 @@
             xarray1 = local_linspace(0.01, 2, nr_items)
             var line1 = d3.svg.line()
             .x(function(d,i) {
-                return xScale(d);})
+                return xScale_local(d);})
             .y(function(d,i) {
-                return yScale(1/(Math.pow(d,3.5)));});
+                return yScale_local(1/(Math.pow(d,3.5)));});
 
             xarray2 = [0.01,100]
             var line2 = d3.svg.line()
             .x(function(d,i) {
-                return xScale(1);})
+                return xScale_local(1);})
             .y(function(d,i) {
-                return yScale(d);});
+                return yScale_local(d);});
 
             xarray3 = [0.01,2]
             var line3 = d3.svg.line()
             .x(function(d,i) {
-                return xScale(d);})
+                return xScale_local(d);})
             .y(function(d,i) {
-                return yScale(1);});
+                return yScale_local(1);});
 
 
             svg.append("svg:path").attr("d", line1(xarray1));
