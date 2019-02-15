@@ -53,3 +53,8 @@ path {
 .line_plot{
   stroke-width: 3;
 }
+
+.line_plot_red{
+  stroke-width: 3;
+  stroke: red;
+}

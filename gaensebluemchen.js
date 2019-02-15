@@ -80,17 +80,29 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         /*
             adaptation begin
         */
-        var volume_2 = approx_mult_factor(volume_param,  (1/factor));
+        //Eliminate the ancillas means multiply by 1/factor
         var space_2 = approx_mult_factor(space_min,  (1/factor));
+        //Removing ancillas means that a linear scalig of the volume took place
+        var volume_2 = approx_mult_factor(volume_param,  (1/factor));
+        //
         var ret_vol_2 = calculate_total(this.estimation_method, volume_2, space_2, total_failure_rate, p_err);
 
+        /*
+            We are using ret_vol_2.dist as factor, because:
+            - the total volume without ancilla dictates the distance (for fixed/same error rate)
+            - the data bus is actually where one would merge and split patches, therefore those qubits do not increase the distance with or without data bus
+
+            We are NOT using ret_vol2.dist as factor, and prefer ret.dist (original), because:
+            - more pessimistic approach
+            - assume that the data bus has a negative influence?
+        */
         var volume_3 = approx_mult_factor(volume_2, ret_vol_2.dist);//multiply because of data bus
         var space_3 = space_2;//because time was scaled due to data bus
         var ret_vol_3 = calculate_total(this.estimation_method, volume_3, space_3, total_failure_rate, p_err);
 
-        if(ret_vol_3.dist <= ret.dist)
+        if((ret_vol_3.dist <= ret_vol_2.dist) && (ret_vol_3.number_of_physical_qubits <= ret.number_of_physical_qubits))
         {
-            to_save_nr_qubits = ret_vol_2.number_of_physical_qubits;
+            to_save_nr_qubits = ret_vol_3.number_of_physical_qubits;
             use_data_bus = true;
         }
         /*
@@ -119,6 +131,7 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         data.push({
             x: this.global_v[i],
             number_of_physical_qubits: to_save_nr_qubits,
+            original_number_of_physical_qubits: ret.number_of_physical_qubits,
             dist: ret.dist,
             use_data_bus: use_data_bus
         })
@@ -163,14 +176,22 @@ Gaensebluemchen.prototype.draw_vertical_line = function(y_min, y_max, x_pos)
 Gaensebluemchen.prototype.draw_line_plot = function(data)
 {
     var ref = this;
-    var line = d3.svg.line()
+    var line1 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale(d.x);})
         .y(function(d, i) {
             // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
             return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
 
-    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line(data));
+    var line2 = d3.svg.line()
+        .x(function(d, i) {
+            return ref.xScale(d.x);})
+        .y(function(d, i) {
+            // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
+            return ref.yScale(d.original_number_of_physical_qubits);});
+
+    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line1(data));
+    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot_red").attr("d", line2(data));
 }
 
 Gaensebluemchen.prototype.init_visualisation = function()
@@ -234,6 +255,7 @@ Gaensebluemchen.prototype.update_data = function()
     var out = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
 
     d3.select(this.plot_name).selectAll(".line_plot").remove();
+    d3.select(this.plot_name).selectAll(".line_plot_red").remove();
     d3.select(this.plot_name).selectAll(".vertical_line").remove();
 
     for (var i = out.dist_changes.length - 1; i >= 0; i--)
