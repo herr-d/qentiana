@@ -6,7 +6,7 @@ function Gaensebluemchen(name, vis_options, estimation_method)
     this.nr_items = 100;
     // log spaced volume scaling factor
     // this.global_v = local_linspace(0.01, 150, this.nr_items);
-    this.global_v = local_linspace(1, 1000, this.nr_items);
+    this.global_v = local_linspace(100, 1000, this.nr_items);
     // scaling factor space
     this.y_axis = local_logspace(1, 5, this.nr_items);
     // this.y_axis = local_linspace(1, 20000, this.nr_items);
@@ -41,7 +41,7 @@ function Gaensebluemchen(name, vis_options, estimation_method)
     create_description(this.plot_name.replace(".", ""), this.explanation);
 
     this.parameters = {};
-    this.parameters["scaling_factor"] = 1.5;
+    this.parameters["scaling_factor"] = 3;
     for(key in this.parameters)
     {
         create_parameter(this.plot_name.replace(".", ""), key, this.parameters[key]);
@@ -83,68 +83,35 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         */
         //Eliminate the ancillas means multiply by 1/factor
         var space_2 = approx_mult_factor(space_min,  (1/factor));
-        //Removing ancillas means that a linear scalig of the volume took place
         var volume_2 = approx_mult_factor(volume_param,  (1/factor));
-        //
         var ret_vol_2 = calculate_total(this.estimation_method, volume_2, space_2, total_failure_rate, p_err);
-
-        /*
-            We are using ret_vol_2.dist as factor, because:
-            - the total volume without ancilla dictates the distance (for fixed/same error rate)
-            - the data bus is actually where one would merge and split patches, therefore those qubits do not increase the distance with or without data bus
-
-            We are NOT using ret_vol2.dist as factor, and prefer ret.dist (original), because:
-            - more pessimistic approach
-            - assume that the data bus has a negative influence?
-        */
-        var volume_3 = approx_mult_factor(volume_2, ret_vol_2.dist);//multiply because of data bus
-        var space_3 = space_2;//because time was scaled due to data bus
-        var ret_vol_3 = calculate_total(this.estimation_method, volume_3, space_3, total_failure_rate, p_err);
-
-        // if(ret_vol_3.dist <= ret_vol_2.dist)
-        // if(ret_vol_3.dist <= ret.dist)
-        if((ret_vol_3.number_of_physical_qubits <= ret.number_of_physical_qubits) && (ret_vol_3.dist <= ret_vol_2.dist))
-        {
-            to_save_nr_qubits = ret_vol_3.number_of_physical_qubits;
-            use_data_bus = true;
-        }
-        /*
-            adaptation end
-        */
 
         /*
             Increase distance to lower res with data bus
         */
-        var iterations = 0;
-        var increased_distance = ret.dist;
+        var iterations = 0;                        
+        var increased_distance = ret_vol_2.dist;
         var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-                        
+                    
+        while((qubits_inc_dist <= ret.number_of_physical_qubits) && !use_data_bus)
+        {
+            iterations++;
 
-        // if(use_data_bus == false)
-        // {
-        //     increased_distance = ret.dist + 2;
-        //     qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-                        
-        //     while((qubits_inc_dist < ret.number_of_physical_qubits) && !use_data_bus)
-        //     {
-        //         iterations++;
+            var volume_inc_distance = volume_2 * increased_distance;
+            var ret_3 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
 
-        //         var volume_inc_distance = volume_2 * increased_distance;
-        //         var ret_4 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
-
-        //         if(ret_4.dist <= increased_distance)
-        //         {
-        //             /*this number was calculated for the full layout without data bus*/
-        //             to_save_nr_qubits = qubits_inc_dist;
-        //             use_data_bus = true;
-        //         }
-        //         else
-        //         {
-        //             increased_distance += 2;
-        //             qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-        //         }
-        //     }
-        // }
+            if(ret_3.dist <= increased_distance)
+            {
+                /*this number was calculated for the full layout without data bus*/
+                to_save_nr_qubits = qubits_inc_dist;
+                use_data_bus = true;
+            }
+            else
+            {
+                increased_distance += 2;
+                qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
+            }
+        }
 
         console.log(use_data_bus + " it:" + iterations + " from:" + ret.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist)
 
@@ -205,8 +172,8 @@ Gaensebluemchen.prototype.draw_line_plot = function(data)
             return ref.xScale(d.x);})
         .y(function(d, i) {
             // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
-            // return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
-            return ref.yScale(d.number_of_physical_qubits);});
+            return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
+            //return ref.yScale(d.number_of_physical_qubits);});
 
     var line2 = d3.svg.line()
         .x(function(d, i) {

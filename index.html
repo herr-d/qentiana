@@ -30,8 +30,8 @@
             // var total_failure_rate = 0.0001;//99.99% reliability
             var total_failure_rate = 0.01;//99% reliability
             // data for minimum values
-            var volume_min = 23 * 11;
-            var space_min = 7;
+            var volume_min = 12;
+            var space_min = 6;
             var phys_error_rate = 0.001;
 
             var plot_names = [];
@@ -94,7 +94,7 @@
                 <!-- #slider error rate -->
                 <div class="slidecontainer">
                     Target volume: <div id="r1_value"></div>
-                    <input type="range" min="100" max="10000" value="0" step="1" class="slider" id="myRange1">
+                    <input type="range" min="1" max="10000" value="0" step="1" class="slider" id="myRange1">
                 </div>
                 <div class="slidecontainer">
                     Target log. qubits <div id="r2_value"></div>

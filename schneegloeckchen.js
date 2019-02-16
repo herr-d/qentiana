@@ -7,7 +7,7 @@ function Schneegloeckchen(name, vis_options, estimation_method)
     // log spaced volume scaling factor
     this.global_v = local_logspace(-2, 2, this.nr_items);
     // scaling factor space
-    this.global_s = local_linspace(0, 2, this.nr_items);
+    this.global_s = local_linspace(0.1, 2, this.nr_items);
     // name of the div
     this.plot_name = name;
     //
