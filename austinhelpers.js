@@ -31,7 +31,9 @@ function austin_data_qubits(space, total_volume, safety_factor, characteristic_g
     }
     
     var data_code_distance = austin_distance(characteristic_gate_error_rate, target_error_per_data_round);
-    var num_data_qubits = space * 2 * Math.pow(data_code_distance, 2);
+    
+    // var num_data_qubits = space * 2 * Math.pow(data_code_distance, 2);
+    var num_data_qubits = number_of_physical_qubits(data_code_distance, space);
 
     var ret = {
         distance : data_code_distance,

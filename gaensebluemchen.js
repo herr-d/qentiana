@@ -9,6 +9,7 @@ function Gaensebluemchen(name, vis_options, estimation_method)
     this.global_v = local_linspace(1, 1000, this.nr_items);
     // scaling factor space
     this.y_axis = local_logspace(1, 5, this.nr_items);
+    // this.y_axis = local_linspace(1, 20000, this.nr_items);
     // name of the div
     this.plot_name = name;
     //
@@ -102,7 +103,7 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
 
         // if(ret_vol_3.dist <= ret_vol_2.dist)
         // if(ret_vol_3.dist <= ret.dist)
-        if((ret_vol_3.number_of_physical_qubits < ret.number_of_physical_qubits) && (ret_vol_3.dist <= ret_vol_2.dist))
+        if((ret_vol_3.number_of_physical_qubits <= ret.number_of_physical_qubits) && (ret_vol_3.dist <= ret_vol_2.dist))
         {
             to_save_nr_qubits = ret_vol_3.number_of_physical_qubits;
             use_data_bus = true;
@@ -114,24 +115,38 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         /*
             Increase distance to lower res with data bus
         */
-        if(use_data_bus == false)
-        {
-            var increased_distance = ret.dist + 2;
-            var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-            
-            var volume_inc_distance = volume_2 * increased_distance;
-            var ret_4 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
+        var iterations = 0;
+        var increased_distance = ret.dist;
+        var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
                         
-            if(qubits_inc_dist < ret.number_of_physical_qubits)
-            {
-                if(ret_4.dist <= increased_distance)
-                {
-                    /*this number was calculated for the full layout without data bus*/
-                    to_save_nr_qubits = qubits_inc_dist;
-                    use_data_bus = true;
-                }
-            }
-        }
+
+        // if(use_data_bus == false)
+        // {
+        //     increased_distance = ret.dist + 2;
+        //     qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
+                        
+        //     while((qubits_inc_dist < ret.number_of_physical_qubits) && !use_data_bus)
+        //     {
+        //         iterations++;
+
+        //         var volume_inc_distance = volume_2 * increased_distance;
+        //         var ret_4 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
+
+        //         if(ret_4.dist <= increased_distance)
+        //         {
+        //             /*this number was calculated for the full layout without data bus*/
+        //             to_save_nr_qubits = qubits_inc_dist;
+        //             use_data_bus = true;
+        //         }
+        //         else
+        //         {
+        //             increased_distance += 2;
+        //             qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
+        //         }
+        //     }
+        // }
+
+        console.log(use_data_bus + " it:" + iterations + " from:" + ret.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist)
 
        /*
             -------------
@@ -190,13 +205,13 @@ Gaensebluemchen.prototype.draw_line_plot = function(data)
             return ref.xScale(d.x);})
         .y(function(d, i) {
             // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
-            return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
+            // return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
+            return ref.yScale(d.number_of_physical_qubits);});
 
     var line2 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale(d.x);})
         .y(function(d, i) {
-            // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
             return ref.yScale(d.original_number_of_physical_qubits);});
 
     d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line1(data));

@@ -38,5 +38,5 @@ function calc_distance(p_err_out, p_cycle, spacetime_volume)
 function number_of_physical_qubits(distance, space)
 {
     //  only looking at data qubits
-    return space * distance * distance;
+    return 2 * space * distance * distance;
 }
