@@ -21,6 +21,15 @@ function austin_distance(p_gate, p_l)
     return 0;
 }
 
+function austin_p_err(distance, p_l)
+{
+    var ret = Math.pow (10 * p_l, 2/(distance + 1) )/100;
+
+    console.log(ret);
+
+    return ret;
+}
+
 function austin_data_qubits(space, total_volume, safety_factor, characteristic_gate_error_rate)
 {
     var target_error_per_data_round = 1 / (safety_factor * total_volume);

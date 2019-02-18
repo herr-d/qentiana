@@ -3,12 +3,12 @@ function Gaensebluemchen(name, vis_options, estimation_method)
     /*
         Parameters
     */
-    this.nr_items = 100;
+    this.nr_items = 101;
     // log spaced volume scaling factor
     // this.global_v = local_linspace(0.01, 150, this.nr_items);
-    this.global_v = local_linspace(100, 1000, this.nr_items);
+    this.global_v = local_linspace_2(1, 0.5, this.nr_items);
     // scaling factor space
-    this.y_axis = local_logspace(1, 5, this.nr_items);
+    this.y_axis = local_logspace(2, 8, this.nr_items);
     // this.y_axis = local_linspace(1, 20000, this.nr_items);
     // name of the div
     this.plot_name = name;
@@ -41,7 +41,28 @@ function Gaensebluemchen(name, vis_options, estimation_method)
     create_description(this.plot_name.replace(".", ""), this.explanation);
 
     this.parameters = {};
-    this.parameters["scaling_factor"] = 3;
+    // this.parameters["scaling_factor"] = 50;
+
+    this.parameters["scaling_factor"] = experiment.routing_overhead;
+
+    this.parameters["distance"] = 15;
+
+    this.parameters["bool_distance"] = experiment.bool_distance;
+    // this.parameters["bool_distance"] = false;
+    
+    this.parameters["bool_add_bus_qubits"] = true;
+
+    this.parameters["___phys_err_rate"] = 0;
+    this.parameters["___default_phys_err_rate"] = phys_error_rate;
+    //52 bit integers
+    this.parameters["___min_y"] = Number.MAX_SAFE_INTEGER;
+    this.parameters["___max_y"] = Number.MIN_SAFE_INTEGER;
+    //
+    //click detector
+    this.parameters["___just_clicked"] = true;
+    //
+    this.reset_min_max_y();
+
     for(key in this.parameters)
     {
         create_parameter(this.plot_name.replace(".", ""), key, this.parameters[key]);
@@ -50,8 +71,7 @@ function Gaensebluemchen(name, vis_options, estimation_method)
 
 Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, space_min, p_err)
 {
-    this.collect_parameters();
-    var factor = this.parameters["scaling_factor"];
+    var factor = (100 + this.parameters["scaling_factor"])/100;
     
     var data = new Array(); // stores the line plot for no physical qubits
     var dist_changes = new Array(); // stores the volume factors for which the distance changes
@@ -59,6 +79,9 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
     var dist_last = -1;
     var volume_param = 0;
     var ret = 0;
+
+    // var add_worst_case_bus_qubits = true;
+    var add_worst_case_bus_qubits = this.parameters["bool_add_bus_qubits"];
 
     for (var i=0; i<this.global_v.length; i++)
     {
@@ -92,13 +115,22 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         var iterations = 0;                        
         var increased_distance = ret_vol_2.dist;
         var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-                    
+        if(add_worst_case_bus_qubits)
+        {
+            qubits_inc_dist += worst_case_number_of_bus_qubits(increased_distance, space_2);
+        }
+
+        var last_p_logical = -1;
+        var curr_p_logical = -1;
+
         while((qubits_inc_dist <= ret.number_of_physical_qubits) && !use_data_bus)
         {
             iterations++;
 
             var volume_inc_distance = volume_2 * increased_distance;
-            var ret_3 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
+            // space_min is not number of patches, but number of logical qubits, and the data bus counts as a qubit
+            var ret_3 = calculate_total(this.estimation_method, volume_inc_distance, space_min, total_failure_rate, p_err);
+            // var ret_3 = calculate_total(this.estimation_method, volume_inc_distance, space_2, total_failure_rate, p_err);
 
             if(ret_3.dist <= increased_distance)
             {
@@ -107,14 +139,31 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
                 use_data_bus = true;
             }
             else
-            {
+            {   
+                last_p_logical = 1 / (austin_p_logical(p_err, increased_distance)  * volume_inc_distance);
                 increased_distance += 2;
+                curr_p_logical = 1 / (austin_p_logical(p_err, increased_distance)  * volume_inc_distance);
+
                 qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
+                if(add_worst_case_bus_qubits)
+                {
+                    qubits_inc_dist += worst_case_number_of_bus_qubits(increased_distance, space_2);
+                }
             }
         }
 
-        console.log(use_data_bus + " it:" + iterations + " from:" + ret.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist)
+        var increase_percentage = qubits_inc_dist / ret.number_of_physical_qubits;
+        console.log("----");
+        if(this.global_v[i] == 1.0)
+        {
+            console.log("THE IMPORTANT PART at scaling " + this.global_v[i] + " with err rate " + phys_error_rate);
 
+            console.log("increased by: " + increase_percentage + " compared to original distance " + ret.dist + "\n");
+            console.log("last_p_log: " + last_p_logical + " curr_p_log: " + curr_p_logical);
+
+            console.log("use " + use_data_bus + " it:" + iterations + " from:" + ret_vol_2.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist)
+        }
+        
        /*
             -------------
        */
@@ -136,21 +185,7 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
     return ret;
 }
 
-// needs access to D3 functionality mainly the svg to plot in and x/yScale
-Gaensebluemchen.prototype.draw_vertical_line = function(y_min, y_max, x_pos)
-{
-    var ref = this;
-    var data = [{x: xpos, y: y_min}, {x: x_pos, y: y_max}]
-    var line = d3.svg.line()
-        .x(function(d,i) {
-            return ref.xScale(d.x);})
-        .y(function(d,i) {
-           return ref.yScale(d.y);});
-
-    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("d", line(data));
-}
-
-Gaensebluemchen.prototype.draw_vertical_line = function(y_min, y_max, x_pos)
+Gaensebluemchen.prototype.draw_vertical_line = function(y_min, y_max, x_pos, type="vertical_line")
 {
     var ref = this;
     var data = [{x: x_pos, y: y_min}, {x: x_pos, y: y_max}]
@@ -160,20 +195,54 @@ Gaensebluemchen.prototype.draw_vertical_line = function(y_min, y_max, x_pos)
         .y(function(d,i) {
            return ref.yScale(d.y);});
 
-    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","vertical_line").attr("d", line(data));
+    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class", type).attr("d", line(data));
 }
 
-// needs access to 
+// 
 Gaensebluemchen.prototype.draw_line_plot = function(data)
 {
+    var slices = new Array(new Array());
+    var slice_index = 0;
+
+    for(var i=0; i<data.length; i++)
+    {
+        if(data[i].use_data_bus)
+        {
+            if(slices[slice_index].length == 0)
+            {
+                slices[slice_index].push(i);
+            }
+        }
+        else
+        {
+            if(slices[slice_index].length == 1)
+            {
+                slices[slice_index].push(i);
+
+                slice_index++;
+                slices[slice_index] = new Array();
+            }
+        }
+    }
+    if(slices[slice_index].length == 0)
+    {
+        //an unfinished slice means that only false for use_data_bus to the end of the data
+        slices.pop();
+    }
+    else if(slices[slice_index].length == 1)
+    {
+        // until the end there are only use_data_bus elements
+        slices[slice_index].push(data.length);
+    }
+
     var ref = this;
     var line1 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale(d.x);})
         .y(function(d, i) {
             // return d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : 0;});
-            return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
-            //return ref.yScale(d.number_of_physical_qubits);});
+            // return (d.use_data_bus ? ref.yScale(d.number_of_physical_qubits) : ref.yScale(ref.y_axis[0]));});
+            return ref.yScale(d.number_of_physical_qubits);});
 
     var line2 = d3.svg.line()
         .x(function(d, i) {
@@ -181,8 +250,18 @@ Gaensebluemchen.prototype.draw_line_plot = function(data)
         .y(function(d, i) {
             return ref.yScale(d.original_number_of_physical_qubits);});
 
-    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line1(data));
-    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot_red").attr("d", line2(data));
+    for(var slice_index = 0; slice_index < slices.length; slice_index++)
+    {
+        console.log("use data bus between indices: " + slices[slice_index]);
+        var data_slice = data.slice(slices[slice_index][0], slices[slice_index][1]);
+
+        //the lines with data bus advantage
+        d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class", "line_plot").attr("d", line1(data_slice));
+    }
+
+    // the line without data bus
+    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class", "line_plot_red").attr("d", line2(data));
+    // d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line1(data));
 }
 
 Gaensebluemchen.prototype.init_visualisation = function()
@@ -232,27 +311,122 @@ Gaensebluemchen.prototype.init_visualisation = function()
 
 Gaensebluemchen.prototype.collect_parameters = function()
 {
-     /*
-        Collect from the field
+    /*
+        Collect from the parameter fields in the HTML
     */
    for(key in this.parameters)
    {
-       this.parameters[key] = document.getElementById(this.plot_name.replace(".", "") + "_" + key).value;
+        if(!is_internal_parameter(key))
+        {
+            this.parameters[key] = read_parameter(this.plot_name.replace(".", ""), key);
+        }
+   }
+
+   if(this.parameters["bool_distance"] == true)
+   {
+        //if the distance should be enforced
+        //it means that the phys_error_rate has to be adapted such that the enforced distance is resulting
+        //
+        //save the default value from the experiment
+        // this.parameters["__default_phys_err_rate"] = phys_error_rate;
+
+        //in "a18" the safety factor is 99
+        if(this.parameters["___just_clicked"] == false)
+        {
+            this.parameters["___default_phys_err_rate"] = phys_error_rate;
+        }
+        
+        phys_error_rate = austin_p_err(this.parameters["distance"], 1/(99 * volume_min));
+
+        this.parameters["___just_clicked"] = true;
+   }
+   else
+   {
+        //restore the phys error rate that was initially set for the experiment
+        if (this.parameters["___just_clicked"] == true)
+        {
+            phys_error_rate = this.parameters["___default_phys_err_rate"];
+        }
+
+        // reset click detector
+        this.parameters["___just_clicked"] = false;
    }
 }
 
 Gaensebluemchen.prototype.update_data = function()
 {
+    this.collect_parameters();
+
     var out = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
 
     d3.select(this.plot_name).selectAll(".line_plot").remove();
     d3.select(this.plot_name).selectAll(".line_plot_red").remove();
     d3.select(this.plot_name).selectAll(".vertical_line").remove();
 
+    this.update_y_axis(out.data);
+
+
     for (var i = out.dist_changes.length - 1; i >= 0; i--)
     {
         this.draw_vertical_line(this.y_axis[this.y_axis.length - 1], this.y_axis[0], out.dist_changes[i].x)
     }
 
+    var mdpos = Math.floor(this.global_v.length/2);
+    this.draw_vertical_line(this.y_axis[this.y_axis.length - 1], this.y_axis[0], this.global_v[mdpos], "no_scale_point");
+
     this.draw_line_plot(out.data);
+}
+
+Gaensebluemchen.prototype.reset_min_max_y = function()
+{
+    this.parameters["___min_y"] = Number.MAX_SAFE_INTEGER;
+    this.parameters["___max_y"] = Number.MIN_SAFE_INTEGER;
+}
+
+Gaensebluemchen.prototype.store_min_max_y = function(y_val)
+{
+    this.parameters["___min_y"] = Math.min(y_val, this.parameters["___min_y"]);
+    this.parameters["___max_y"] = Math.max(y_val, this.parameters["___max_y"]);
+}
+
+Gaensebluemchen.prototype.update_y_axis = function(data)
+{
+    var ref = this;
+    // 
+    this.reset_min_max_y();
+    for (var i=0; i<data.length; i++)
+    {
+        this.store_min_max_y(data[i].number_of_physical_qubits);
+        this.store_min_max_y(data[i].original_number_of_physical_qubits);
+    }
+    //
+    //recompute the values on the axis
+    var min_log = Math.floor(Math.log10(this.parameters["___min_y"]));
+    var max_log = Math.ceil(Math.log10(this.parameters["___max_y"]));
+    if(max_log == min_log)
+    {
+        max_log++;
+    }
+    this.y_axis = local_logspace(min_log, max_log, this.nr_items);
+
+    this.yScale = d3.scale.log()
+        .domain([ref.y_axis[0], ref.y_axis[ref.y_axis.length - 1]])
+        .range([ref.y_axis.length * ref.options.itemSize, 0]);
+
+    this.yAxis = d3.svg.axis()
+        .scale(ref.yScale)
+        // .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
+        .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log10(d))); })
+        .orient("left");
+    //
+    //delete the y axis
+    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).selectAll(".y.axis").remove();
+    //
+    //append the new one
+    d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(0, " + (ref.options.cellSize/2) + ")")
+        .call(ref.yAxis)
+        .selectAll('text')
+        .attr('font-weight', 'normal');
 }

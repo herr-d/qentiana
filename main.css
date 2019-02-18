@@ -48,10 +48,17 @@ path {
 
 .vertical_line{
   stroke: orange;
+  stroke-width: 5;
+}
+
+.no_scale_point{
+  stroke: black;
+  stroke-width: 1;
 }
 
 .line_plot{
-  stroke-width: 3;
+  stroke-width: 7;
+  stroke: limegreen;
 }
 
 .line_plot_red{

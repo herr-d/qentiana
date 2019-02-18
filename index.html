@@ -24,15 +24,46 @@
         <script src="gaensebluemchen.js"></script>
 
         <script>
+            var total_failure_rate = 0.01;//99% reliability
+
+            var experiment_bristlecone = {
+                volume : 6 * 2,
+                footprint : 6,
+                physical_error_rate : 0.001,
+                //params to the chart classes
+                routing_overhead: 200,
+                bool_distance: false
+            };
+
+            var experiment_t_gate_litinski = {
+                volume : 23 * 11,
+                footprint : 11,
+                physical_error_rate : 0.001,
+                //params to the chart classes
+                routing_overhead: 50,
+                bool_distance: true
+            };
+
+            var experiment_only_clifford = {
+                volume : 6144 * 30000,
+                footprint : 6144, //16384 * 1.5,
+                physical_error_rate : 0.001,
+                //params to the chart classes
+                routing_overhead: 50,
+                bool_distance: false
+            };
+
+            // var experiment = experiment_bristlecone;
+            var experiment = experiment_only_clifford;
+
             // //
             // var estimation_method = "a18";
 
             // var total_failure_rate = 0.0001;//99.99% reliability
-            var total_failure_rate = 0.01;//99% reliability
             // data for minimum values
-            var volume_min = 12;
-            var space_min = 6;
-            var phys_error_rate = 0.001;
+            var volume_min = experiment.volume;
+            var space_min = experiment.footprint;
+            var phys_error_rate = experiment.physical_error_rate;
 
             var plot_names = [];
             var plot_objects = {};
@@ -94,11 +125,12 @@
                 <!-- #slider error rate -->
                 <div class="slidecontainer">
                     Target volume: <div id="r1_value"></div>
-                    <input type="range" min="1" max="10000" value="0" step="1" class="slider" id="myRange1">
+                    <input type="range" min="1" max="1000000" value="0" step="1" class="slider" id="myRange1">
+                    <!-- <input type="range" min="1" max="10000" value="0" step="1" class="slider" id="myRange1"> -->
                 </div>
                 <div class="slidecontainer">
                     Target log. qubits <div id="r2_value"></div>
-                    <input type="range" min="5" max="500" value="0" step="1" class="slider" id="myRange2">
+                    <input type="range" min="5" max="30000" value="0" step="1" class="slider" id="myRange2">
                 </div>
                 <div class="slidecontainer">
                     per cycle error: <div id="r3_value"></div>
@@ -193,16 +225,20 @@
 
             function update_plots()
             {
+                console.clear();
+
                 for(var index in plot_names)
                 {
                     var plot_name = plot_names[index];
                     var data = plot_objects[plot_name].update_data();
                 }
 
+                update_slider_labels();
+               
                 return 0;
             }
 
-            function add_event_handlers()
+            function update_slider_labels()
             {
                 var slider1 = document.getElementById("myRange1");
                 var slider2 = document.getElementById("myRange2");
@@ -224,12 +260,22 @@
                 var output3 = document.getElementById("r3_value");
                 output3.innerHTML = slider3.value; // Display the default slider value
 
+            }
+
+            function add_event_handlers()
+            {
+                var slider1 = document.getElementById("myRange1");
+                var slider2 = document.getElementById("myRange2");
+                var slider3 = document.getElementById("myRange3");
+
+                update_slider_labels();
+
                 // Update the current slider value (each time you drag the slider handle)
                 slider1.oninput = function() {
                     volume_min = this.value;
                     update_plots();
 
-                    output1.innerHTML = volume_min;
+                    // output1.innerHTML = volume_min;
                 }
 
                 // Update the current slider value (each time you drag the slider handle)
@@ -237,7 +283,7 @@
                     space_min = this.value;
                     update_plots();
 
-                    output2.innerHTML = space_min;
+                    // output2.innerHTML = space_min;
                 } 
 
                 // Update the current slider value (each time you drag the slider handle)
@@ -245,7 +291,8 @@
                     phys_error_rate = this.value;
                     update_plots();
 
-                    output3.innerHTML = phys_error_rate;
+                    // console.log(phys_error_rate);
+                    // output3.innerHTML = phys_error_rate;
                 }  
             }
         </script>

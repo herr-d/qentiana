@@ -16,10 +16,10 @@ function approx_mult_factor(factor, value)
 function local_logspace(start, stop, num=50)
 {
     //assume base = 10
-    var ret = new Array(num);
+    var ret = new Array(num + 1);
     
     var delta = (stop - start)/num;
-    for(var i=0; i<num; i++)
+    for(var i=0; i < num + 1; i++)
     {
         ret[i] = Math.pow(10, start + delta * i);
     }
@@ -35,6 +35,30 @@ function local_linspace(start, stop, num=50)
     for(var i=0; i<num; i++)
     {
         ret[i] = start + delta * i;
+    }
+    
+    return ret;
+}
+
+function local_linspace_2(middle, plus_minus_range, num=50)
+{
+    // assume num is odd
+    if(num % 2 == 0)
+    {
+        //make odd
+        num += 1;
+    }
+
+    var ret = new Array(num);
+    var middle_index = Math.floor(num / 2);
+    ret[middle_index] = middle;
+
+    var float_ratio = (2*plus_minus_range) / num;
+    var half_distance = middle_index;
+    for(var i=1; i<=half_distance; i++)
+    {
+        ret[middle_index + i] = middle + i*float_ratio;
+        ret[middle_index - i] = middle - i*float_ratio;
     }
     
     return ret;
@@ -117,6 +141,13 @@ function create_description(elem_name, text)
 
 function create_parameter(elem_name, param_name, param_default_value)
 {
+    if(param_name.startsWith("___"))
+    {
+        //this should not be displayed
+        //it is an internal parameter
+        return;
+    }
+
     var container = document.getElementsByClassName(elem_name)[0];
 
     container.appendChild(document.createElement("br"));
@@ -127,11 +158,70 @@ function create_parameter(elem_name, param_name, param_default_value)
 
     var input = document.createElement("input");
     input.setAttribute("onchange", "update_plots()");
-    input.setAttribute("type", "number");
-    input.setAttribute("step", "1");
+
+    if(is_bool_parameter(param_name))
+    {
+        input.setAttribute("type", "checkbox");
+        if(parseBool(param_default_value))
+        {
+            input.setAttribute("checked", true);
+        }
+    }
+    else
+    {
+        input.setAttribute("type", "number");
+        input.setAttribute("step", "1");
+        input.setAttribute("value", param_default_value);
+    }
+
     input.setAttribute("id", elem_name + "_" + param_name);
-    input.setAttribute("value", param_default_value);
 
     divcont.appendChild(input);
     container.appendChild(divcont);
+}
+
+function read_parameter(elem_name, param_name)
+{
+    var obj = document.getElementById(elem_name + "_" + param_name);
+    
+    var ret = null;
+
+    if(is_bool_parameter(param_name))
+    {
+        ret = parseBool(obj.checked);
+    }
+    else
+    {
+        ret = parseInt(obj.value);
+    }
+    
+    return ret;
+}
+
+function parseBool(stringbool)
+{
+    var strb = stringbool+"";
+    return (strb.toLowerCase() === "true");
+}
+
+function is_internal_parameter(param_name)
+{
+    if(param_name.startsWith("___"))
+    {
+        //this should not be displayed
+        //it is an internal parameter
+        return true;
+    }
+    return false;
+}
+
+function is_bool_parameter(param_name)
+{
+    if(param_name.startsWith("bool"))
+    {
+        //this should not be displayed
+        //it is an internal parameter
+        return true;
+    }
+    return false;
 }
