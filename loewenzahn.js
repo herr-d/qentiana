@@ -1,8 +1,7 @@
-function Loewenzahn(name, vis_options, estimation_method)
-{
-        /*
-            Parameters
-        */
+function Loewenzahn(name, vis_options, estimation_method) {
+    /*
+        Parameters
+    */
     this.nr_items = 100;
     // log spaced volume scaling factor
     this.global_v = local_logspace(-2, 2, this.nr_items);
@@ -26,12 +25,14 @@ function Loewenzahn(name, vis_options, estimation_method)
         .orient("bottom");
 
     this.yScale_local = d3.scale.log()
-        .domain([ref.global_v[0], ref.global_v[ref.global_v.length-1]])
+        .domain([ref.global_v[0], ref.global_v[ref.global_v.length - 1]])
         .range([ref.global_v.length * ref.options.itemSize, 0]);
 
     this.yAxis = d3.svg.axis()
         .scale(ref.yScale_local)
-        .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
+        .ticks(6, function(d) {
+            return 10 + formatPower(Math.round(Math.log(d) / Math.LN10));
+        })
         .orient("left");
 
     this.explanation = "Given a fixed number of physical qubits, what is the total success probability? The higher the probability the lighter color.";
@@ -42,42 +43,40 @@ function Loewenzahn(name, vis_options, estimation_method)
     create_description(this.plot_name.replace(".", ""), this.explanation);
 
     this.parameters = {};
+    this.parameters["bool_update_plot"] = true;
     this.parameters["total_num_physical_qubits"] = 500;
-    for(key in this.parameters)
-    {
+    for (key in this.parameters) {
         create_parameter(this.plot_name.replace(".", ""), key, this.parameters[key]);
     }
 }
 
-Loewenzahn.prototype.get_max_dist_from_qubits = function(logical_qubits, total_physical_qubits){
-	// Calculates the maximum distance given a fixed number of physical qubits
+Loewenzahn.prototype.get_max_dist_from_qubits = function(logical_qubits, total_physical_qubits) {
+    // Calculates the maximum distance given a fixed number of physical qubits
 
-    if(logical_qubits > total_physical_qubits){
+    if (logical_qubits > total_physical_qubits) {
         return -1;
     }
-    var ret = Math.floor(Math.sqrt(total_physical_qubits/logical_qubits));
+    var ret = Math.floor(Math.sqrt(total_physical_qubits / logical_qubits));
     if (ret <= 2)
         return 1;
-    
+
     return ret;
 }
 
-Loewenzahn.prototype.total_err = function(indiv_err, volume){
-	// given a per step error rate calculate the total error of the computation
+Loewenzahn.prototype.total_err = function(indiv_err, volume) {
+    // given a per step error rate calculate the total error of the computation
     return Math.pow(1 - indiv_err, volume);
 }
 
 // TODO INPUT IS CHANGED FROM total_failure_rate TO total_num_physical_qubits
-Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_min, p_err)
-{
+Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_min, p_err) {
     /*
         Collect from the field
     */
-    for(key in this.parameters)
-    {
+    for (key in this.parameters) {
         this.parameters[key] = document.getElementById(this.plot_name.replace(".", "") + "_" + key).value;
     }
-    
+
     var total_num_physical_qubits = this.parameters["total_num_physical_qubits"];
 
     var data = new Array();
@@ -86,10 +85,8 @@ Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_m
     var volume_param = 0;
     var P_out = 0;
 
-    for (var i=0; i<this.global_v.length; i++)
-    {
-        for(var j=0; j < this.global_s.length; j++)
-        {
+    for (var i = 0; i < this.global_v.length; i++) {
+        for (var j = 0; j < this.global_s.length; j++) {
             space_param = Math.ceil(space_min * this.global_s[j]);
             volume_param = Math.ceil(volume_min * this.global_v[i]);
             dist = this.get_max_dist_from_qubits(space_param, total_num_physical_qubits);
@@ -100,10 +97,10 @@ Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_m
             data.push({
                 x: this.global_s[j],
                 y: this.global_v[i],
-                dist : dist,
-                indiv_error : indiv_err,
-                total_volume : volume_param,
-                qubits_used : number_of_physical_qubits(dist, space_param),
+                dist: dist,
+                indiv_error: indiv_err,
+                total_volume: volume_param,
+                qubits_used: number_of_physical_qubits(dist, space_param),
                 total_error: P_out
             })
         }
@@ -112,13 +109,11 @@ Loewenzahn.prototype.gen_data = function(total_failure_rate, volume_min, space_m
     return data;
 }
 
-Loewenzahn.prototype.color_interpretation = function(d)
-{
+Loewenzahn.prototype.color_interpretation = function(d) {
     return "rgb(" + to_rgb(d.total_error) + "," + to_rgb(d.total_error) + "," + to_rgb(d.total_error) + ")";
 }
 
-Loewenzahn.prototype.init_visualisation = function()
-{
+Loewenzahn.prototype.init_visualisation = function() {
     /*
         D3
     */
@@ -140,21 +135,27 @@ Loewenzahn.prototype.init_visualisation = function()
         .attr('class', 'cell')
         .attr('width', ref.options.cellSize)
         .attr('height', ref.options.cellSize)
-        .attr('y', function(d) { return ref.yScale_local(d.y); })
-        .attr('x', function(d) { return ref.xScale_local(d.x); })
-        .attr('fill', function(d) {return ref.color_interpretation(d);})
-        .on('mouseover', handle_new.bind(ref) );
+        .attr('y', function(d) {
+            return ref.yScale_local(d.y);
+        })
+        .attr('x', function(d) {
+            return ref.xScale_local(d.x);
+        })
+        .attr('fill', function(d) {
+            return ref.color_interpretation(d);
+        })
+        .on('mouseover', handle_new.bind(ref));
 
     svg.append("g")
         .attr("class", "y axis")
-        .attr("transform", "translate(0, " + (ref.options.cellSize/2) + ")")
+        .attr("transform", "translate(0, " + (ref.options.cellSize / 2) + ")")
         .call(ref.yAxis)
         .selectAll('text')
         .attr('font-weight', 'normal');
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + (ref.options.cellSize/2) + ", " + (ref.global_v.length + 1) * ref.options.itemSize + ")")
+        .attr("transform", "translate(" + (ref.options.cellSize / 2) + ", " + (ref.global_v.length + 1) * ref.options.itemSize + ")")
         .call(ref.xAxis)
         .selectAll('text')
         .attr('font-weight', 'normal')
@@ -162,19 +163,23 @@ Loewenzahn.prototype.init_visualisation = function()
 
 
     // draw lines
-    xarray2 = [0.01,100]
+    xarray2 = [0.01, 100]
     var line2 = d3.svg.line()
-    .x(function(d,i) {
-        return ref.xScale_local(1);})
-    .y(function(d,i) {
-        return ref.yScale_local(d);});
+        .x(function(d, i) {
+            return ref.xScale_local(1);
+        })
+        .y(function(d, i) {
+            return ref.yScale_local(d);
+        });
 
-    xarray3 = [0.01,2]
+    xarray3 = [0.01, 2]
     var line3 = d3.svg.line()
-    .x(function(d,i) {
-        return ref.xScale_local(d);})
-    .y(function(d,i) {
-        return ref.yScale_local(1);});
+        .x(function(d, i) {
+            return ref.xScale_local(d);
+        })
+        .y(function(d, i) {
+            return ref.yScale_local(1);
+        });
 
     svg.append("svg:path").attr("d", line2(xarray2));
     svg.append("svg:path").attr("d", line3(xarray3));
@@ -184,23 +189,32 @@ Loewenzahn.prototype.init_visualisation = function()
     var movex = (ref.global_s.length + 1) * ref.options.itemSize;
 
     svg.append("text")
-        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate("+ (-ref.options.margin.left/2) +","+(movex/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+        .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate(" + (-ref.options.margin.left / 2) + "," + (movex / 2) + ")rotate(-90)") // text is drawn off the screen top left, move down and out and rotate
         .text("Volume Factor");
 
     svg.append("text")
-        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate("+ (movex/2) +","+(movey + (ref.options.margin.bottom / 2))+")")  // centre below axis
+        .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")") // centre below axis
         .text("Space Factor");
 }
 
-Loewenzahn.prototype.update_data = function()
-{
+Loewenzahn.prototype.update_data = function() {
     var ref = this;
 
-    var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-    d3.select(this.plot_name).selectAll("rect")
-        .data(data)
-        .transition().duration(1000)
-        .style("fill", function(d) {return ref.color_interpretation(d);});
+    for (key in this.parameters) {
+        if (!is_internal_parameter(key)) {
+            this.parameters[key] = read_parameter(this.plot_name.replace(".", ""), key);
+        }
+    }
+
+    if (this.parameters["bool_update_plot"]) {
+        var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+        d3.select(this.plot_name).selectAll("rect")
+            .data(data)
+            .transition().duration(1000)
+            .style("fill", function(d) {
+                return ref.color_interpretation(d);
+            });
+    }
 }

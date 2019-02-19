@@ -1,5 +1,4 @@
-function Schneegloeckchen(name, vis_options, estimation_method)
-{
+function Schneegloeckchen(name, vis_options, estimation_method) {
     /*
         Parameters
     */
@@ -31,16 +30,23 @@ function Schneegloeckchen(name, vis_options, estimation_method)
 
     this.yAxis = d3.svg.axis()
         .scale(ref.yScale_local)
-        .ticks(6, function(d) { return 10 + formatPower(Math.round(Math.log(d) / Math.LN10)); })
+        .ticks(6, function(d) {
+            return 10 + formatPower(Math.round(Math.log(d) / Math.LN10));
+        })
         .orient("left");
 
 
     this.explanation = "Comparison of two different optimization heuristics (time and space). In blue/green areas space optimization is better compared to the time optimization. Purple/red areas are not self-consistent (not allowed) and in white areas the time optimization is superior.";
     create_description(this.plot_name.replace(".", ""), this.explanation);
+
+    this.parameters = {};
+    this.parameters["bool_update_plot"] = true;
+    for (key in this.parameters) {
+        create_parameter(this.plot_name.replace(".", ""), key, this.parameters[key]);
+    }
 }
 
-Schneegloeckchen.prototype.init_visualisation = function()
-{
+Schneegloeckchen.prototype.init_visualisation = function() {
     var ref = this;
     //
     var svg = d3.select(ref.plot_name).append("svg")
@@ -52,14 +58,14 @@ Schneegloeckchen.prototype.init_visualisation = function()
 
     svg.append("g")
         .attr("class", "y axis")
-        .attr("transform", "translate(-2, " + (ref.options.cellSize/2) + ")")
+        .attr("transform", "translate(-2, " + (ref.options.cellSize / 2) + ")")
         .call(ref.yAxis)
         .selectAll('text')
         .attr('font-weight', 'normal');
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + (ref.options.cellSize/2) + ", " + ((ref.global_v.length + 1) * ref.options.itemSize + 2 ) + ")")
+        .attr("transform", "translate(" + (ref.options.cellSize / 2) + ", " + ((ref.global_v.length + 1) * ref.options.itemSize + 2) + ")")
         .call(ref.xAxis)
         .selectAll('text')
         .attr('font-weight', 'normal')
@@ -70,13 +76,13 @@ Schneegloeckchen.prototype.init_visualisation = function()
     var movex = (ref.global_s.length + 1) * ref.options.itemSize;
 
     svg.append("text")
-        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate(" + (-ref.options.margin.left/2) + "," + (movex/2) + ")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+        .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate(" + (-ref.options.margin.left / 2) + "," + (movex / 2) + ")rotate(-90)") // text is drawn off the screen top left, move down and out and rotate
         .text("Volume Factor");
 
     svg.append("text")
-        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate("+ (movex/2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")")  // centre below axis
+        .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")") // centre below axis
         .text("Space Factor");
 
     var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
@@ -86,41 +92,43 @@ Schneegloeckchen.prototype.init_visualisation = function()
         .attr('class', 'cell')
         .attr('width', ref.options.cellSize)
         .attr('height', ref.options.cellSize)
-        .attr('y', function(d) { return ref.yScale_local(d.y); })
-        .attr('x', function(d) { return ref.xScale_local(d.x); })
-        .attr('fill', function(d) {return ref.color_interpretation(d);})
-        .on('mouseover', handleMouseOver.bind(ref) );
+        .attr('y', function(d) {
+            return ref.yScale_local(d.y);
+        })
+        .attr('x', function(d) {
+            return ref.xScale_local(d.x);
+        })
+        .attr('fill', function(d) {
+            return ref.color_interpretation(d);
+        })
+        .on('mouseover', handleMouseOver.bind(ref));
 }
 
-Schneegloeckchen.prototype.gen_data = function(total_failure_rate, start_volume, start_space, p_err)
-{
+Schneegloeckchen.prototype.gen_data = function(total_failure_rate, start_volume, start_space, p_err) {
     // 2D Array
     var data = new Array();
 
-    for (var i=0; i<this.global_v.length; i++)
-    {
-        for(var j=0; j < this.global_s.length; j++)
-        {
+    for (var i = 0; i < this.global_v.length; i++) {
+        for (var j = 0; j < this.global_s.length; j++) {
             var space_param = approx_mult_factor(this.global_s[j], space_min);
             var ret_1 = calculate_total(this.estimation_method, volume_min, space_param, total_failure_rate, p_err);
 
             var vol_param = approx_mult_factor(this.global_v[i], volume_min);
             var ret_2 = calculate_total(this.estimation_method, vol_param, space_min, total_failure_rate, p_err);
 
-            if ((ret_1 == "ERROR") || (ret_2 == "ERROR"))
-            {
+            if ((ret_1 == "ERROR") || (ret_2 == "ERROR")) {
                 console.log("SOMETHING WENT WRONG!!!");
             }
 
-            var ratio = (ret_2["number_of_physical_qubits"])/ (ret_1["number_of_physical_qubits"]);
+            var ratio = (ret_2["number_of_physical_qubits"]) / (ret_1["number_of_physical_qubits"]);
 
             data.push({
                 x: this.global_s[j],
                 y: this.global_v[i],
-                dist_opt_vol : ret_1.dist,
-                dist_opt_space : ret_2.dist,
-                nr_target_vol : ret_1["number_of_physical_qubits"],
-                nr_target_space : ret_2["number_of_physical_qubits"],
+                dist_opt_vol: ret_1.dist,
+                dist_opt_space: ret_2.dist,
+                nr_target_vol: ret_1["number_of_physical_qubits"],
+                nr_target_space: ret_2["number_of_physical_qubits"],
                 ratio: ratio
             })
         }
@@ -129,16 +137,14 @@ Schneegloeckchen.prototype.gen_data = function(total_failure_rate, start_volume,
     return data;
 }
 
-Schneegloeckchen.prototype.color_interpretation = function(data)
-{
+Schneegloeckchen.prototype.color_interpretation = function(data) {
     var component_green = data.ratio;
     var component_red = data.ratio;
     var component_blue = data.ratio;
 
     var analysis = paler_analysis(this.estimation_method, data);
 
-    if(this.estimation_method == "a12")
-    {
+    if (this.estimation_method == "a12") {
         component_blue = 128;
     }
 
@@ -150,13 +156,23 @@ Schneegloeckchen.prototype.color_interpretation = function(data)
     return "rgb(" + to_rgb(component_red) + "," + to_rgb(component_green) + "," + to_rgb(component_blue) + ")";
 }
 
-Schneegloeckchen.prototype.update_data = function()
-{
+Schneegloeckchen.prototype.update_data = function() {
     var ref = this;
 
-    var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
-    d3.select(this.plot_name).selectAll("rect")
-        .data(data)
-        .transition().duration(1000)
-        .style("fill", function(d) {return ref.color_interpretation(d);});
+    for (key in this.parameters) {
+        if (!is_internal_parameter(key)) {
+            this.parameters[key] = read_parameter(this.plot_name.replace(".", ""), key);
+        }
+    }
+
+
+    if (this.parameters["bool_update_plot"]) {
+        var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
+        d3.select(this.plot_name).selectAll("rect")
+            .data(data)
+            .transition().duration(1000)
+            .style("fill", function(d) {
+                return ref.color_interpretation(d);
+            });
+    }
 }
