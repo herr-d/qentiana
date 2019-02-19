@@ -131,7 +131,7 @@ function create_description(elem_name, text)
     
     var alink = document.createElement("a");
     alink.setAttribute("href", "#");
-    alink.setAttribute("onclick", "save_as_svg(\"" + elem_name + "\")");
+    alink.setAttribute("onclick", "save_as_svg(\"plotsvg" + elem_name + "\")");
     alink.innerHTML = "Download SVG";
     desc.appendChild(alink);
 

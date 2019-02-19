@@ -1,12 +1,6 @@
-// function storeSVG(svg_container)
-// {
-//     xmlString = serializer.serializeToString(svg_container.node());
-//     imgData = 'data:image/svg+xml;base64,' + btoa(xmlString);
-// }
-
 function save_as_svg(container_class_name)
 {
-    var svg_data = document.getElementsByClassName(container_class_name)[0].innerHTML;//put id of your svg element here
+    var svg_data = document.getElementById(container_class_name).parentNode.innerHTML;//put id of your svg element here
 
     var head = '<svg title="graph" version="1.1" xmlns="http://www.w3.org/2000/svg">';
 
