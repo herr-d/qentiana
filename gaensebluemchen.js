@@ -309,6 +309,7 @@ Gaensebluemchen.prototype.init_visualisation = function()
 		.attr("transform", "translate("+ (movex/2) +","+(movey + (ref.options.margin.bottom / 2))+")")  // centre below axis
 		.text("Volume Factor");
 
+    /*
 	// add mouseover events
 	var mouseG = svg.append("g").attr("class", "mouse-over-effects");
 	
@@ -316,7 +317,7 @@ Gaensebluemchen.prototype.init_visualisation = function()
 	var tooltip = svg.append("g")
 		.attr("id", "tooltip");
 		
-	var tooltip_text = tooltip.append("text")
+	var tooltip_text_1 = tooltip.append("text")
 		.attr("id", "tooltip_text")
 		.attr("transform", "translate(10,-10)")
 		.style("opacity","0");;
@@ -377,7 +378,7 @@ Gaensebluemchen.prototype.init_visualisation = function()
 					return "translate(" + mouse[0] + "," + pos_data.y +")";
 
 			});
-		});
+		});*/
 	}
 
 	Gaensebluemchen.prototype.collect_parameters = function()
