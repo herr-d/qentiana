@@ -16,6 +16,7 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
     //
     this.estimation_method = estimation_method;
     //
+    this.console_text = "";
     var ref = this;
 
     this.xScale = d3.scale.linear()
@@ -162,15 +163,14 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
 
         var increase_percentage = (qubits_inc_dist / ret.number_of_physical_qubits);
 
-        console.log("----");
         if (this.global_v[i] == 1.0) {
-            console.log("THE IMPORTANT PART at scaling " + this.global_v[i] + " with err rate " + phys_error_rate);
+            this.console_text = "At volume scaling " + this.global_v[i] + " with err rate " + phys_error_rate + "<br>";
 
-            console.log("increased by: " + increase_percentage + " compared to original distance " + ret.dist + "\n");
-            console.log("bus_last_p_log: " + bus_last_p_logical + " bus_curr_p_log: " + bus_curr_p_logical);
-            console.log("orig_last_p_log: " + orig_last_p_logical + " orig_curr_p_log: " + orig_curr_p_logical);
+            this.console_text += "increased by: " + increase_percentage + " compared to original distance " + ret.dist + "<br>";
+            this.console_text += "bus_last_p_log: " + bus_last_p_logical + " bus_curr_p_log: " + bus_curr_p_logical + "<br>";
+            this.console_text += "orig_last_p_log: " + orig_last_p_logical + " orig_curr_p_log: " + orig_curr_p_logical + "<br>";
 
-            console.log("use " + use_data_bus + " it:" + iterations + " from:" + ret_vol_2.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist)
+            this.console_text += "use " + use_data_bus + " it:" + iterations + " from:" + ret_vol_2.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist + "<br>";
         }
 
         /*
@@ -281,7 +281,6 @@ Gaensebluemchen.prototype.init_visualisation = function() {
         .append("svg")
         .attr("width", ref.options.width + ref.options.margin.left + ref.options.margin.right)
         .attr("height", ref.options.height + ref.options.margin.top + ref.options.margin.bottom)
-        //.on('mouseover', cleanMouseOver.bind(ref) )
         .append("g")
         .attr("id", "plotsvg" + ref.plot_name.replace(".", ""))
         .attr("transform", "translate(" + ref.options.margin.left + "," + ref.options.margin.top + ")");
@@ -317,76 +316,20 @@ Gaensebluemchen.prototype.init_visualisation = function() {
         .attr("transform", "translate(" + (movex / 2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")") // centre below axis
         .text("Volume Factor");
 
-    /*
+
     // add mouseover events
     var mouseG = svg.append("g").attr("class", "mouse-over-effects");
-							
-							
-    var tooltip = svg.append("g")
-    .attr("id", "tooltip");
-							
-    var tooltip_text_1 = tooltip.append("text")
-    .attr("id", "tooltip_text")
-    .attr("transform", "translate(10,-10)")
-    .style("opacity","0");;
-							
-							
-    var tooltip_circle = tooltip.append("circle")
-    .attr("r", 5)
-    .style("visibility","visible")
-    .style("stroke", "black")
-    .style("fill", "none")
-    .style("stroke-width", "1px")
-    .style("opacity","0");;
-							
-							
-							
+
     mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
-    .attr('width', ref.options.width) // can't catch mouse events on a g element
-    .attr('height', ref.options.height)
-    .attr('fill', 'none')
-    .attr('pointer-events', 'all')
-    .on('mouseout', function() { tooltip_text.style("opacity", "0");
-    tooltip_circle.style("opacity", "0");})
-    .on('mouseover', function() { tooltip_text.style("opacity", ".8");
-    tooltip_circle.style("opacity", ".8");})
-    .on('mousemove', function() { // mouse moving over canvas
-    	var mouse = d3.mouse(this);
-    	
-    	d3.select("#tooltip")
-    	.attr("transform", function(d, i) {
-    		x_val = ref.xScale.invert(mouse[0]);
-    		
-    		line_plot = d3.select(".line_plot").node();
-    		line_plot_red = d3.select(".line_plot_red").node();
-    		var get_y = function(line_plot){
-    			var beginning = 0;
-    			end = line_plot.getTotalLength();
-    			target = null;
-    			
-    			while (true){
-    				target = Math.floor((beginning + end) / 2);
-    				pos = line_plot.getPointAtLength(target);
-    				if ((target === end || target === beginning) && pos.x !== mouse[0]) {
-    					break;
-    				}
-    				if (pos.x > mouse[0])      end = target;
-    				else if (pos.x < mouse[0]) beginning = target;
-    				else break; //position found
-    			}
-    			return pos;
-    		};
-    		
-    		pos_data = get_y(line_plot);
-    		pos_red = get_y(line_plot_red);
-    		
-    		tooltip_text.text("Anc " + Math.round(ref.yScale.invert(pos_red.y))
-    		+" databus: " + Math.round(ref.yScale.invert(pos_data.y)));
-    		
-    		return "translate(" + mouse[0] + "," + pos_data.y +")";
-    		
-    	});
-    });*/
+        .attr('width', ref.options.width) // can't catch mouse events on a g element
+        .attr('height', ref.options.height)
+        .attr('fill', 'none')
+        .attr('pointer-events', 'all')
+        .on('mouseout', mouseOut)
+        .on('mouseover', function() {
+            mouseOver(ref.console_text);
+        })
+        .on('mousemove', mouseMove);
 }
 
 Gaensebluemchen.prototype.collect_parameters = function() {

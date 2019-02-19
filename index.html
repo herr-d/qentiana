@@ -109,6 +109,11 @@
         </script>
     </head>
     <body>
+        <!-- tooltip -->
+        <div id="console" >
+        </div>
+
+
         <div style="overflow: hidden; ">
             <div style="float: left">
                 <img src="enzian.png" height="80" style="transform: scaleX(-1);">
@@ -159,69 +164,25 @@
                     <!-- Here should be the plot -->
             </div>
 
-            <div id="console" class="chart" style="font-size:9pt; height:450px; width: 450px; background-color: antiquewhite;overflow: hidden;">
-            </div>
-        </div>
-
         <script>
-            function cleanMouseOver(data, param2)
-            {
+            function mouseOut(){
                 var output = document.getElementById("console");
-                // clean console
-                output.innerHTML = ""; 
-            }
-
-            function handleMouseOver(data, param2)
-            {
-                var curr_volume = approx_mult_factor(data.y, volume_min);
-                var curr_space = approx_mult_factor(data.x, space_min);
-
-                var output = document.getElementById("console");
-                // clean console
                 output.innerHTML = "";
-
-                if(data.ratio <= 1)
-                    output.style.color = "blue";
-                else
-                    output.style.color = "orange";
-
-                output.innerHTML += data.x + " " + data.y + "->" + data.ratio + "<br>";
-                output.innerHTML += "distance vol: " + data.dist_opt_vol + " having a hardware footprint of " + curr_space + " log qubits <br>";
-                output.innerHTML += "distance space: " + data.dist_opt_space + " for a volume of " + curr_volume + "<br>";
-
-                output.innerHTML += "tradeoff time scaling threshold<br>" + (data.x * data.y) + "<br>";
-                output.innerHTML += "minimum scaling should be below tradeoff threshold:<br>" + data.dist_opt_space + "<br>";
-
-                output.innerHTML += "<br>";
-                output.innerHTML += "qub vol: " + data.nr_target_vol + "<br>";
-                output.innerHTML += "qub spc: " + data.nr_target_space + "<br>";
-
-                var ret = paler_analysis(this.estimation_method, data);
-                output.innerHTML += "paler tradeoff time scaling threshold<br>" + ret.threshold + "<br>";
-                if(ret.ok)
-                {
-                    output.innerHTML += "OK " + ret.dist + " " + ret.volume;
-                }
-                else
-                {
-                    output.innerHTML += "Not OK " + ret.dist + " " + ret.volume;
-                }
+                output.style.visibility = "hidden";
             }
 
-            function handle_new(data, param2)
-            {
+            function mouseOver(HTML_content){
                 var output = document.getElementById("console");
-                // clean console
-                output.innerHTML = "";
-
-                output.style.color = "black";
-
-                output.innerHTML += "Distance at point (" + data.x + ", " + data.y + "): <br>" + data.dist + " <br>";
-                output.innerHTML += "error rate in unit cell: " + data.indiv_error + " with a total volume of " + data.total_volume + "<br>";
-
-                output.innerHTML += "Total success probability: " + data.total_error + "<br>";
-
+                output.style.visibility = "visible";
+                output.innerHTML = HTML_content;
             }
+
+            function mouseMove(){
+                var output = document.getElementById("console");
+                output.style.top = (d3.event.pageY+30)+"px";
+                output.style.left = (d3.event.pageX+10)+"px";
+            }
+
 
             function update_plots()
             {
@@ -301,6 +262,8 @@
             /*
                 MAIN
             */
+
+
             add_event_handlers();
 
             plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];

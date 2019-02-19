@@ -144,7 +144,19 @@ Loewenzahn.prototype.init_visualisation = function() {
         .attr('fill', function(d) {
             return ref.color_interpretation(d);
         })
-        .on('mouseover', handle_new.bind(ref));
+        .on('mouseover', function(data, param2) {
+            var output = document.getElementById("console");
+            // clean console
+            output.style.color = "black";
+            var content = "";
+            content += "Distance at point (" + data.x + ", " + data.y + "): <br>" + data.dist + " <br>";
+            content += "error rate in unit cell: " + data.indiv_error + " with a total volume of " + data.total_volume + "<br>";
+            content += "Total success probability: " + data.total_error + "<br>";
+            mouseOver(content);
+        })
+        .on('mousemove', mouseMove)
+        .on('mouseout', mouseOut);
+
 
     svg.append("g")
         .attr("class", "y axis")

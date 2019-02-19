@@ -65,3 +65,11 @@ path {
   stroke-width: 3;
   stroke: red;
 }
+
+#console{
+  background-color: rgba(255, 255, 255, 0.9);
+  position: absolute;
+  height: 250px;
+  width: 300px;
+  visibility: "hidden";
+}

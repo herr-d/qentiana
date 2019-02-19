@@ -77,7 +77,29 @@ Maigloeckchen.prototype.init_visualisation = function() {
         .attr('fill', function(d) {
             return ref.color_interpretation(d);
         })
-        .on('mouseover', handleMouseOver.bind(ref));
+        .on('mouseover', function(data, param2) {
+            var output = document.getElementById("console");
+            var curr_volume = approx_mult_factor(data.y, volume_min);
+            var curr_space = approx_mult_factor(data.x, space_min);
+            if (data.ratio <= 1)
+                output.style.color = "blue";
+            else
+                output.style.color = "orange";
+            content = "";
+            content += data.x + " " + data.y + "->" + data.ratio + "<br>";
+            content += "distance vol: " + data.dist_opt_vol + " having a hardware footprint of " + curr_space + " log qubits <br>";
+            content += "distance space: " + data.dist_opt_space + " for a volume of " + curr_volume + "<br>";
+
+            content += "tradeoff time scaling threshold<br>" + (data.x * data.y) + "<br>";
+            content += "minimum scaling should be below tradeoff threshold:<br>" + data.dist_opt_space + "<br>";
+
+            content += "<br>";
+            content += "qub vol: " + data.nr_target_vol + "<br>";
+            content += "qub spc: " + data.nr_target_space + "<br>";
+            mouseOver(content);
+        })
+        .on('mousemove', mouseMove)
+        .on('mouseout', mouseOut);
 
     svg.append("g")
         .attr("class", "y axis")
@@ -95,15 +117,7 @@ Maigloeckchen.prototype.init_visualisation = function() {
         .style("text-anchor", "start");
 
 
-    // draw lines
-    // xarray1 = local_linspace(0.01, 2, this.nr_items)
-    // var line1 = d3.svg.line()
-    // .x(function(d,i) {
-    //     return ref.xScale_local(d);})
-    // .y(function(d,i) {
-    //     return ref.yScale_local(1/(Math.pow(d,3.5)));});
-
-    xarray2 = [0.01, 100]
+    xarray2 = [ref.global_v[0], ref.global_v[ref.global_v.length - 1]]
     var line2 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale_local(1);
@@ -112,7 +126,7 @@ Maigloeckchen.prototype.init_visualisation = function() {
             return ref.yScale_local(d);
         });
 
-    xarray3 = [0.01, 2]
+    xarray3 = [ref.global_s[0], ref.global_s[ref.global_s.length - 1]]
     var line3 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale_local(d);
@@ -185,7 +199,7 @@ Maigloeckchen.prototype.update_data = function() {
             this.parameters[key] = read_parameter(this.plot_name.replace(".", ""), key);
         }
     }
-    
+
     if (this.parameters["bool_update_plot"]) {
         var data = this.gen_data(total_failure_rate, volume_min, space_min, phys_error_rate);
         d3.select(this.plot_name).selectAll("rect")

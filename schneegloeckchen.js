@@ -101,7 +101,29 @@ Schneegloeckchen.prototype.init_visualisation = function() {
         .attr('fill', function(d) {
             return ref.color_interpretation(d);
         })
-        .on('mouseover', handleMouseOver.bind(ref));
+        .on('mouseover', function(data, param2) {
+            var output = document.getElementById("console");
+            var curr_volume = approx_mult_factor(data.y, volume_min);
+            var curr_space = approx_mult_factor(data.x, space_min);
+            if (data.ratio <= 1)
+                output.style.color = "blue";
+            else
+                output.style.color = "orange";
+            content = "";
+            content += data.x + " " + data.y + "->" + data.ratio + "<br>";
+            content += "distance vol: " + data.dist_opt_vol + " having a hardware footprint of " + curr_space + " log qubits <br>";
+            content += "distance space: " + data.dist_opt_space + " for a volume of " + curr_volume + "<br>";
+
+            content += "tradeoff time scaling threshold<br>" + (data.x * data.y) + "<br>";
+            content += "minimum scaling should be below tradeoff threshold:<br>" + data.dist_opt_space + "<br>";
+
+            content += "<br>";
+            content += "qub vol: " + data.nr_target_vol + "<br>";
+            content += "qub spc: " + data.nr_target_space + "<br>";
+            mouseOver(content);
+        })
+        .on('mousemove', mouseMove)
+        .on('mouseout', mouseOut);
 }
 
 Schneegloeckchen.prototype.gen_data = function(total_failure_rate, start_volume, start_space, p_err) {
