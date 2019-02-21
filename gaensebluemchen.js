@@ -4,7 +4,7 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
     */
     this.nr_items = 101;
     // log spaced volume scaling factor
-    // this.global_v = local_linspace(0.01, 150, this.nr_items);
+    //this.global_v = local_linspace(0.01, 150, this.nr_items);
     this.global_v = local_linspace_2(1, 0.5, this.nr_items);
     // scaling factor space
     this.y_axis = local_logspace(2, 8, this.nr_items);
@@ -175,7 +175,7 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
 
             this.console_text += "use " + use_data_bus + " it:" + iterations + " from:" + ret_vol_2.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist + "<br>";
 
-            console.log(this.console_text);
+            //console.log(this.console_text);
         }
 
         /*
@@ -301,7 +301,7 @@ Gaensebluemchen.prototype.init_visualisation = function() {
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + (ref.options.cellSize / 2) + ", " + (ref.global_v.length + 1) * ref.options.itemSize + ")")
+        .attr("transform", "translate(" + 0 + ", " + (ref.global_v.length + 1) * ref.options.itemSize + ")")
         .call(ref.xAxis)
         .selectAll('text')
         .attr('font-weight', 'normal')
