@@ -39,7 +39,7 @@ function Maigloeckchen(name, vis_options, estimation_method) {
     create_description(this.plot_name.replace(".", ""), this.explanation);
 
     this.parameters = {};
-    this.parameters["bool_update_plot"] = true;
+    this.parameters["bool_update_plot"] = false;
     for (key in this.parameters) {
         create_parameter(this.plot_name.replace(".", ""), key, this.parameters[key]);
     }

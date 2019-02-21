@@ -44,7 +44,7 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters = {};
     // this.parameters["scaling_factor"] = 50;
-    this.parameters["bool_update_plot"] = true;
+    this.parameters["bool_update_plot"] = false;
 
     this.parameters["scaling_factor"] = experiment.routing_overhead;
 

@@ -161,6 +161,7 @@
             function mouseOver(HTML_content){
                 var output = document.getElementById("console");
                 output.style.visibility = "visible";
+                console.log(HTML_content);
                 output.innerHTML = HTML_content;
             }
 
@@ -246,9 +247,9 @@
 
             add_event_handlers();
 
-            // plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];
+            plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];
 
-            plot_names = [".plot5"];
+            //plot_names = [".plot5"];
 
             plot_objects[".plot1"] = new Schneegloeckchen(".plot1", vis_options, "a12");
             plot_objects[".plot2"] = new Schneegloeckchen(".plot2", vis_options, "a18");
