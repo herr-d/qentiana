@@ -57,3 +57,24 @@ var experiment_only_clifford_ccz_5 = {
     enforced_distance: 24.7,//23,
     safety_factor : 9900
 };
+
+var experiment_bristlecone = {
+    volume : 6 * 2,
+    footprint : 6,
+    physical_error_rate : 0.001,
+    //params to the chart classes
+    routing_overhead: 200,
+    bool_distance: false,
+    enforced_distance: -1
+};
+
+var experiment_t_gate_litinski = {
+    volume : 23 * 11,
+    footprint : 11,
+    physical_error_rate : 0.001,
+    //params to the chart classes
+    routing_overhead: 50,
+    bool_distance: true,
+    enforced_distance: 30.7,
+    safety_factor: 9900
+};

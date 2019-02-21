@@ -29,26 +29,9 @@
         <script>
             var total_failure_rate = 0.01;//99% reliability
 
-            var experiment_bristlecone = {
-                volume : 6 * 2,
-                footprint : 6,
-                physical_error_rate : 0.001,
-                //params to the chart classes
-                routing_overhead: 200,
-                bool_distance: false
-            };
-
-            var experiment_t_gate_litinski = {
-                volume : 23 * 11,
-                footprint : 11,
-                physical_error_rate : 0.001,
-                //params to the chart classes
-                routing_overhead: 50,
-                bool_distance: true
-            };
-  
             // var experiment = experiment_bristlecone;
-            var experiment = experiment_only_clifford_ccz_1;
+            // var experiment = experiment_only_clifford_ccz_1;
+            var experiment = experiment_t_gate_litinski;
 
             // //
             // var estimation_method = "a18";
