@@ -48,10 +48,13 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters["scaling_factor"] = experiment.routing_overhead;
 
-    this.parameters["distance"] = 15;
-
     this.parameters["bool_distance"] = experiment.bool_distance;
-    // this.parameters["bool_distance"] = false;
+
+    this.parameters["distance"] = 15;
+    if(experiment.bool_distance)
+    {
+        this.parameters["distance"] = experiment.enforced_distance;
+    }
 
     this.parameters["bool_add_bus_qubits"] = true;
 
@@ -171,6 +174,8 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
             this.console_text += "orig_last_p_log: " + orig_last_p_logical + " orig_curr_p_log: " + orig_curr_p_logical + "<br>";
 
             this.console_text += "use " + use_data_bus + " it:" + iterations + " from:" + ret_vol_2.dist + " to:" + increased_distance + " from:" + ret.number_of_physical_qubits + " to:" + qubits_inc_dist + "<br>";
+
+            console.log(this.console_text);
         }
 
         /*

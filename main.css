@@ -1,5 +1,6 @@
 .slidecontainer {
-  width: 100%; /* Width of the outside container */
+  width: 250px; /* Width of the outside container */
+  float: left;
 }
 
 /* tell the SVG path to be a thin blue line without any area fill */
@@ -12,13 +13,12 @@ path {
 .slider {
   -webkit-appearance: none;  /* Override default CSS styles */
   appearance: none;
-  width: 100%; /* Full-width */
+  width: 200px; /* Full-width */
   height: 25px; /* Specified height */
   background: #d3d3d3; /* Grey background */
-  outline: none; /* Remove outline */
-  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-  transition: opacity .2s;
+  color: #1a2e58;
+  font-weight: bold;
+  text-align: right;
 }
 
 .axis path, 
