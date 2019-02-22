@@ -48,9 +48,9 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters["scaling_factor"] = experiment.routing_overhead;
 
-    this.parameters["bool_distance"] = experiment.bool_distance;
+    //this.parameters["bool_distance"] = experiment.bool_distance;
 
-    this.parameters["distance"] = 15;
+    //this.parameters["distance"] = 15;
     if(experiment.bool_distance)
     {
         this.parameters["distance"] = experiment.enforced_distance;
@@ -60,6 +60,7 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters["___phys_err_rate"] = 0;
     this.parameters["___default_phys_err_rate"] = phys_error_rate;
+    
     //52 bit integers
     this.parameters["___min_y"] = Number.MAX_SAFE_INTEGER;
     this.parameters["___max_y"] = Number.MIN_SAFE_INTEGER;
@@ -348,19 +349,17 @@ Gaensebluemchen.prototype.collect_parameters = function() {
         }
     }
 
-    if (this.parameters["bool_distance"] == true) {
+    if (bool_enforced_distance == true) {
         //if the distance should be enforced
         //it means that the phys_error_rate has to be adapted such that the enforced distance is resulting
-        //
-        //save the default value from the experiment
-        // this.parameters["__default_phys_err_rate"] = phys_error_rate;
 
-        //in "a18" the safety factor is 99
         if (this.parameters["___just_clicked"] == false) {
             this.parameters["___default_phys_err_rate"] = phys_error_rate;
         }
 
-        phys_error_rate = austin_p_err(this.parameters["distance"], 1 / (99 * volume_min));
+        phys_error_rate = austin_p_err(
+            enforced_distance, comp_target_error_per_data_round_1(
+                safety_factor, volume_min))
 
         this.parameters["___just_clicked"] = true;
     } else {

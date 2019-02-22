@@ -1,7 +1,20 @@
-.slidecontainer {
+/* styling of input elements */
+.inputcontainer {
   width: 250px; /* Width of the outside container */
   float: left;
 }
+
+
+.controlbox{
+  border-radius: 25px;
+  margin-bottom: 20px;
+  position: relative;
+  right:5%;
+  float:right;
+  width:90%;
+  text-align: center;
+}
+
 
 /* tell the SVG path to be a thin blue line without any area fill */
 path {
