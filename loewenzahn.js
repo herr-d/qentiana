@@ -36,10 +36,6 @@ function Loewenzahn(name, vis_options, estimation_method) {
         .orient("left");
 
     this.explanation = "Given a fixed number of physical qubits, what is the total success probability? The higher the probability the lighter color.";
-    // var container = document.getElementsByClassName(this.plot_name.replace(".", ""))[0];
-    // container.innerHTML += "<div style='width: inherit'>" + this.explanation;
-    // container.innerHTML += "<a href=\"#\" onclick=\"save_as_svg('" + this.plot_name.replace(".", "") +"')\"> Download SVG</a></div>";
-
     create_description(this.plot_name.replace(".", ""), this.explanation);
 
     this.parameters = {};
@@ -175,7 +171,7 @@ Loewenzahn.prototype.init_visualisation = function() {
 
 
     // draw lines
-    xarray2 = [0.01, 100]
+    xarray2 = [ref.global_v[0], ref.global_v[ref.global_v.length - 1]]
     var line2 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale_local(1);
@@ -184,7 +180,7 @@ Loewenzahn.prototype.init_visualisation = function() {
             return ref.yScale_local(d);
         });
 
-    xarray3 = [0.01, 2]
+    xarray3 = [ref.global_s[0], ref.global_s[ref.global_s.length - 1]]
     var line3 = d3.svg.line()
         .x(function(d, i) {
             return ref.xScale_local(d);

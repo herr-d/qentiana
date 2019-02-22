@@ -9,10 +9,8 @@ path {
   stroke-width: 1;
   fill: none;
 }
-/* The slider itself */
-.slider {
-  -webkit-appearance: none;  /* Override default CSS styles */
-  appearance: none;
+
+.input {
   width: 200px; /* Full-width */
   height: 25px; /* Specified height */
   background: #d3d3d3; /* Grey background */

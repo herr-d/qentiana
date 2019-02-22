@@ -103,22 +103,8 @@
             </div>
         </div>
 
-        <div id="controls" style="font-size:10pt; overflow: hidden; margin-bottom: 20px;">
-                <!-- #slider error rate -->
-                <div class="slidecontainer">
-                    Target volume: <div id="r1_value"></div>
-                    <input type="number" min="1" value="0" step="1" id="myRange1" class="slider">
-                </div>
-                <div class="slidecontainer">
-                    Target log. qubits <div id="r2_value"></div>
-                    <input type="number" min="5" value="0" step="1" id="myRange2" class="slider">
-                </div>
-                <div class="slidecontainer">
-                    per cycle error: <div id="r3_value"></div>
-                    <input type="number" min="0" value="0.000" step="0.0002" id="myRange3" class="slider">
-                </div>
-                <!--<div class="slidecontainer">
-                    Experiment:   
+        <div style="height: 140px; text-align: center;">
+                    Experiment:<br>
                     <select name="select_experiments" size="5">
                         <option value="ccz1">Q100</option>
                         <option value="ccz2">Chem54</option>
@@ -126,12 +112,29 @@
                         <option value="ccz4">Shor1024</option>
                         <option value="ccz5">Shor4096</option>
                       </select>
+        </div>
+        <div id="controls" style="font-size:10pt; overflow: hidden; margin-bottom: 20px;">
+                <div class="slidecontainer">
+                    Target volume: <div id="r1_value"></div>
+                    <input type="number" min="1" value="0" step="1" id="myRange1" class="input">
                 </div>
-            -->
+                <div class="slidecontainer">
+                    Target log. qubits <div id="r2_value"></div>
+                    <input type="number" min="5" value="0" step="1" id="myRange2" class="input">
+                </div>
+                <div class="slidecontainer">
+                    per cycle error: <div id="r3_value"></div>
+                    <input type="number" min="0" value="0.000" step="0.0002" id="myRange3" class="input">
+                </div>
+                <div class="slidecontainer">
+                    <input type="checkbox" id="force_distance" style="margin-bottom: 15px">
+                    Use Fixed Distance <div id="r2_value"></div>
+                    <input type="number" min="5" value="0" step="1" id="distance" class="input">
+                </div>
         </div>
 
         <div style="overflow: hidden;">
-            <div class="plot5 chart" style="float: left">
+            <div class="plot1 chart" style="float: left">
                 <!-- Here should be the plot -->
             </div>
 
@@ -147,9 +150,8 @@
                     <!-- Here should be the plot -->
             </div>
 
-            <div class="plot1 chart" style="float: left">
-                    <!-- Here should be the plot -->
-            </div>
+            <!--<div class="plot5 chart" style="float: left">
+            </div>-->
 
         <script>
             function mouseOut(){
@@ -161,7 +163,7 @@
             function mouseOver(HTML_content){
                 var output = document.getElementById("console");
                 output.style.visibility = "visible";
-                console.log(HTML_content);
+                //console.log(HTML_content);
                 output.innerHTML = HTML_content;
             }
 
@@ -189,50 +191,52 @@
 
             function update_slider_labels()
             {
-                var slider1 = document.getElementById("myRange1");
-                var slider2 = document.getElementById("myRange2");
-                var slider3 = document.getElementById("myRange3");
+                var volume_input = document.getElementById("myRange1");
+                var logical_qubits_input = document.getElementById("myRange2");
+                var phys_err_rate = document.getElementById("myRange3");
+                var force_distance = document.getElementById("force_distance");
+                var distance = document.getElementById("distance");
 
                 /*
                     Configure default values
                 */
-                slider1.value = volume_min;
-                slider2.value = space_min;
-                slider3.value = phys_error_rate;
+                volume_input.value = volume_min;
+                logical_qubits_input.value = space_min;
+                phys_err_rate.value = phys_error_rate;
 
                 var output1 = document.getElementById("r1_value");
-                output1.innerHTML = slider1.value; // Display the default slider value
+                output1.innerHTML = volume_input.value; // Display the default slider value
 
                 var output2 = document.getElementById("r2_value");
-                output2.innerHTML = slider2.value; // Display the default slider value
+                output2.innerHTML = logical_qubits_input.value; // Display the default slider value
 
                 var output3 = document.getElementById("r3_value");
-                output3.innerHTML = slider3.value; // Display the default slider value
+                output3.innerHTML = phys_err_rate.value; // Display the default slider value
 
             }
 
             function add_event_handlers()
             {
-                var slider1 = document.getElementById("myRange1");
-                var slider2 = document.getElementById("myRange2");
-                var slider3 = document.getElementById("myRange3");
+                var volume_input = document.getElementById("myRange1");
+                var logical_qubits_input = document.getElementById("myRange2");
+                var phys_err_rate = document.getElementById("myRange3");
 
                 update_slider_labels();
 
                 // Update the current slider value (each time you drag the slider handle)
-                slider1.onchange = function() {
+                volume_input.onchange = function() {
                     volume_min = this.value;
                     update_plots();
                 }
 
                 // Update the current slider value (each time you drag the slider handle)
-                slider2.onchange = function() {
+                logical_qubits_input.onchange = function() {
                     space_min = this.value;
                     update_plots();
                 } 
 
                 // Update the current slider value (each time you drag the slider handle)
-                slider3.onchange = function() {
+                phys_err_rate.onchange = function() {
                     phys_error_rate = this.value;
                     update_plots();
                 }
@@ -247,15 +251,15 @@
 
             add_event_handlers();
 
-            plot_names = [".plot1", ".plot2", ".plot3", ".plot4", ".plot5"];
+            plot_names = [ ".plot1", ".plot2", ".plot3", ".plot4"];
 
             //plot_names = [".plot5"];
 
-            plot_objects[".plot1"] = new Schneegloeckchen(".plot1", vis_options, "a12");
-            plot_objects[".plot2"] = new Schneegloeckchen(".plot2", vis_options, "a18");
-            plot_objects[".plot3"] = new Maigloeckchen(".plot3", vis_options, "a18");
-            plot_objects[".plot4"] = new Loewenzahn(".plot4", vis_options, "a18");
-            plot_objects[".plot5"] = new Gaensebluemchen(".plot5", vis_options, "a18");
+            //plot_objects[".plot5"] = new Schneegloeckchen(".plot1", vis_options, "a12");
+            plot_objects[".plot1"] = new Schneegloeckchen(".plot2", vis_options, "a18");
+            plot_objects[".plot2"] = new Maigloeckchen(".plot3", vis_options, "a18");
+            plot_objects[".plot3"] = new Loewenzahn(".plot4", vis_options, "a18");
+            plot_objects[".plot4"] = new Gaensebluemchen(".plot5", vis_options, "a18");
 
             for(var index in plot_names)
             {
