@@ -175,6 +175,11 @@ function read_parameter(elem_name, param_name) {
     return ret;
 }
 
+function set_parameter(elem_name, param_name, value) {
+    var obj = document.getElementById(elem_name + "_" + param_name);
+    obj.checked = value
+}
+
 function parseBool(stringbool) {
     var strb = stringbool + "";
     return (strb.toLowerCase() === "true");

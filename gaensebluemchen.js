@@ -4,8 +4,8 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
     */
     this.nr_items = 101;
     // log spaced volume scaling factor
-    //this.global_v = local_linspace(0.01, 150, this.nr_items);
-    this.global_v = local_linspace_2(1, 0.5, this.nr_items);
+    //this.x_axis_values = local_linspace(0.01, 150, this.nr_items);
+    this.x_axis_values = local_linspace_2(1, 0.5, this.nr_items);
     // scaling factor space
     this.y_axis = local_logspace(2, 8, this.nr_items);
     // this.y_axis = local_linspace(1, 20000, this.nr_items);
@@ -20,8 +20,8 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
     var ref = this;
 
     this.xScale = d3.scale.linear()
-        .domain([ref.global_v[0], ref.global_v[ref.global_v.length - 1]])
-        .range([0, ref.global_v.length * ref.options.itemSize]);
+        .domain([ref.x_axis_values[0], ref.x_axis_values[ref.x_axis_values.length - 1]])
+        .range([0, ref.x_axis_values.length * ref.options.itemSize]);
 
     this.xAxis = d3.svg.axis()
         .scale(ref.xScale)
@@ -43,23 +43,16 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
     create_description(this.plot_name.replace(".", ""), this.explanation);
 
     this.parameters = {};
-    // this.parameters["scaling_factor"] = 50;
-    this.parameters["bool_update_plot"] = false;
+
+    this.parameters["bool_update_plot"] = true;
 
     this.parameters["scaling_factor"] = experiment.routing_overhead;
-
-    this.parameters["bool_distance"] = experiment.bool_distance;
-
-    this.parameters["distance"] = 15;
-    if(experiment.bool_distance)
-    {
-        this.parameters["distance"] = experiment.enforced_distance;
-    }
 
     this.parameters["bool_add_bus_qubits"] = true;
 
     this.parameters["___phys_err_rate"] = 0;
     this.parameters["___default_phys_err_rate"] = phys_error_rate;
+    
     //52 bit integers
     this.parameters["___min_y"] = Number.MAX_SAFE_INTEGER;
     this.parameters["___max_y"] = Number.MIN_SAFE_INTEGER;
@@ -87,15 +80,15 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
     // var add_worst_case_bus_qubits = true;
     var add_worst_case_bus_qubits = this.parameters["bool_add_bus_qubits"];
 
-    for (var i = 0; i < this.global_v.length; i++) {
-        volume_param = approx_mult_factor(volume_min, this.global_v[i]);
+    for (var i = 0; i < this.x_axis_values.length; i++) {
+        volume_param = approx_mult_factor(volume_min, this.x_axis_values[i]);
 
         //maybe change names for this data array because different meaning of output
         ret = calculate_total(this.estimation_method, volume_param, space_min, total_failure_rate, p_err);
 
         if (dist_last != -1 && dist_last != ret.dist) {
             dist_changes.push({
-                x: this.global_v[i],
+                x: this.x_axis_values[i],
                 new_dist: ret.dist
             })
         }
@@ -166,8 +159,8 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
 
         var increase_percentage = (qubits_inc_dist / ret.number_of_physical_qubits);
 
-        if (this.global_v[i] == 1.0) {
-            this.console_text = "At volume scaling " + this.global_v[i] + " with err rate " + phys_error_rate + "<br>";
+        if (this.x_axis_values[i] == 1.0) {
+            this.console_text = "At volume scaling " + this.x_axis_values[i] + " with err rate " + phys_error_rate + "<br>";
 
             this.console_text += "increased by: " + increase_percentage + " compared to original distance " + ret.dist + "<br>";
             this.console_text += "bus_last_p_log: " + bus_last_p_logical + " bus_curr_p_log: " + bus_curr_p_logical + "<br>";
@@ -183,7 +176,7 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         */
 
         data.push({
-            x: this.global_v[i],
+            x: this.x_axis_values[i],
             number_of_physical_qubits: to_save_nr_qubits,
             original_number_of_physical_qubits: ret.number_of_physical_qubits,
             dist: ret.dist,
@@ -291,6 +284,7 @@ Gaensebluemchen.prototype.init_visualisation = function() {
         .attr("transform", "translate(" + ref.options.margin.left + "," + ref.options.margin.top + ")");
 
     this.update_data();
+    set_parameter(this.plot_name.replace(".", ""),"bool_update_plot",false);
 
     svg.append("g")
         .attr("class", "y axis")
@@ -301,7 +295,7 @@ Gaensebluemchen.prototype.init_visualisation = function() {
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + 0 + ", " + (ref.global_v.length + 1) * ref.options.itemSize + ")")
+        .attr("transform", "translate(" + 0 + ", " + (ref.x_axis_values.length + 1) * ref.options.itemSize + ")")
         .call(ref.xAxis)
         .selectAll('text')
         .attr('font-weight', 'normal')
@@ -309,7 +303,7 @@ Gaensebluemchen.prototype.init_visualisation = function() {
 
     // now add titles to the axes
     var movey = (this.y_axis.length + 1) * this.options.itemSize;
-    var movex = (this.global_v.length + 1) * this.options.itemSize;
+    var movex = (this.x_axis_values.length + 1) * this.options.itemSize;
 
     svg.append("text")
         .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
@@ -318,7 +312,7 @@ Gaensebluemchen.prototype.init_visualisation = function() {
 
     svg.append("text")
         .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")") // centre below axis
+        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (2*ref.options.margin.bottom)) + ")") // centre below axis
         .text("Volume Factor");
 
 
@@ -347,19 +341,17 @@ Gaensebluemchen.prototype.collect_parameters = function() {
         }
     }
 
-    if (this.parameters["bool_distance"] == true) {
+    if (bool_enforced_distance == true) {
         //if the distance should be enforced
         //it means that the phys_error_rate has to be adapted such that the enforced distance is resulting
-        //
-        //save the default value from the experiment
-        // this.parameters["__default_phys_err_rate"] = phys_error_rate;
 
-        //in "a18" the safety factor is 99
         if (this.parameters["___just_clicked"] == false) {
             this.parameters["___default_phys_err_rate"] = phys_error_rate;
         }
 
-        phys_error_rate = austin_p_err(this.parameters["distance"], 1 / (99 * volume_min));
+        phys_error_rate = austin_p_err(
+            enforced_distance, comp_target_error_per_data_round_1(
+                safety_factor, volume_min))
 
         this.parameters["___just_clicked"] = true;
     } else {
@@ -390,8 +382,8 @@ Gaensebluemchen.prototype.update_data = function() {
             this.draw_vertical_line(this.y_axis[this.y_axis.length - 1], this.y_axis[0], out.dist_changes[i].x)
         }
 
-        var mdpos = Math.floor(this.global_v.length / 2);
-        this.draw_vertical_line(this.y_axis[this.y_axis.length - 1], this.y_axis[0], this.global_v[mdpos], "no_scale_point");
+        var mdpos = Math.floor(this.x_axis_values.length / 2);
+        this.draw_vertical_line(this.y_axis[this.y_axis.length - 1], this.y_axis[0], this.x_axis_values[mdpos], "no_scale_point");
 
         this.draw_line_plot(out.data);
     }

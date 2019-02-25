@@ -3,18 +3,22 @@
     Below we are forcing much lower distances such that the one we compute is the commented one
     APPROXIMATION ERRORS
 */
-var experiment_only_clifford_ccz_1 = {
+
+
+experiments = {};
+
+experiments["Shor 4096"] = {
     volume : 8.36661126433567E+016,
     footprint : 18447, 
     physical_error_rate : 0.001,
     //params to the chart classes
     routing_overhead: 50,
     bool_distance: true,
-    enforced_distance: 34.7,//35,
+    enforced_distance: 34.7,
     safety_factor : 200
 };
 
-var experiment_only_clifford_ccz_2 = {
+experiments["Shor 1024"] = {
     volume : 327618727122432,
     footprint : 4623, 
     physical_error_rate : 0.001,
@@ -25,7 +29,7 @@ var experiment_only_clifford_ccz_2 = {
     safety_factor : 200
 };
 
-var experiment_only_clifford_ccz_3 = {
+experiments["Chem 250"] = {
     volume : 756142777500,
     footprint : 512, 
     physical_error_rate : 0.001,
@@ -36,7 +40,7 @@ var experiment_only_clifford_ccz_3 = {
     safety_factor : 9900
 };
 
-var experiment_only_clifford_ccz_4 = {
+experiments["Chem 54"] = {
     volume : 4591836000,
     footprint : 185,
     physical_error_rate : 0.001,
@@ -47,18 +51,18 @@ var experiment_only_clifford_ccz_4 = {
     safety_factor : 9900
 };
 
-var experiment_only_clifford_ccz_5 = {
+experiments["Q100"] = {
     volume : 131250000000,
     footprint : 150,
     physical_error_rate : 0.001,
     //params to the chart classes
     routing_overhead: 50,
     bool_distance: true,
-    enforced_distance: 24.7,//23,
+    enforced_distance: 24.7,
     safety_factor : 9900
 };
 
-var experiment_bristlecone = {
+experiments["Bristlecone"] = {
     volume : 6 * 2,
     footprint : 6,
     physical_error_rate : 0.001,
@@ -68,7 +72,7 @@ var experiment_bristlecone = {
     enforced_distance: -1
 };
 
-var experiment_t_gate_litinski = {
+experiments["15-to-1 Distillation"] = {
     volume : 23 * 11,
     footprint : 11,
     physical_error_rate : 0.001,

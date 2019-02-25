@@ -39,7 +39,7 @@ Computes the distance given the gate error rate and the target_error_data_round
 function austin_distance(p_gate, target_error_data_round)
 {
     var min_dist = 3;
-    var max_dist = 1000;
+    var max_dist = 500;
     for (var d = min_dist; d <= max_dist; d = d+2)
     {
         if(austin_p_logical(p_gate, d) < target_error_data_round)

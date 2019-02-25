@@ -1,7 +1,23 @@
-.slidecontainer {
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.inputcontainer {
   width: 250px; /* Width of the outside container */
   float: left;
 }
+
+
+.controlbox{
+  border-radius: 25px;
+  margin-bottom: 20px;
+  position: relative;
+  right:5%;
+  float:right;
+  width:90%;
+  text-align: center;
+}
+
 
 /* tell the SVG path to be a thin blue line without any area fill */
 path {
@@ -9,10 +25,8 @@ path {
   stroke-width: 1;
   fill: none;
 }
-/* The slider itself */
-.slider {
-  -webkit-appearance: none;  /* Override default CSS styles */
-  appearance: none;
+
+.input {
   width: 200px; /* Full-width */
   height: 25px; /* Specified height */
   background: #d3d3d3; /* Grey background */
@@ -34,16 +48,16 @@ path {
 }
 
 .chart {
-  border-style: dotted;
-  border-width: 5px;
-  border-color: #1a2e58;
+  margin: 10px;
   width: 450px;
+  height: 600px;
 }
 
 .description{
   font-size: 9pt;
+  text-align: justify; 
   color: #1a2e58;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Roboto', sans-serif;
 }
 
 .vertical_line{
@@ -72,4 +86,5 @@ path {
   height: 250px;
   width: 300px;
   visibility: "hidden";
+  font-family: 'Roboto', sans-serif;
 }
