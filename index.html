@@ -28,14 +28,13 @@
 
         <!-- initialize global parameters and functions used by all classes -->
         <script>
-            var experiment = experiment_bristlecone; //default experiment when loaded
+            var experiment = experiments["15-to-1 Distillation"]; //default experiment when loaded
             var volume_min = experiment.volume;
             var space_min = experiment.footprint;
             var safety_factor = experiment.safety_factor;
-            var bool_enforced_distance = experiment.enforced_distance;
-            var enforced_distance = experiment.distance;
+            var bool_enforced_distance = experiment.bool_distance;
+            var enforced_distance = experiment.enforced_distance;
             var phys_error_rate = experiment.physical_error_rate;
-
             var total_failure_rate = 0.01;//99% reliability
 
             var plot_names = [];
@@ -84,7 +83,7 @@
     </head>
     <body>
         <!-- tooltip -->
-        <div id="console" style="visibility: hidden">
+        <div id="console" style="visibility: hidden; z-index: 20;">
         </div>
 
         <div style="overflow: hidden; width: 100%">
@@ -101,15 +100,8 @@
         <div class="controlbox">
             <div style="height: 140px; text-align: center;">
                         Experiment:<br>
-                        <select name="select_experiments" size="5" style="width:200px">
-                            <option value="bristlecone" selected>Bristlecone</option>
-                            <option value="chem54">Chem54</option>
-                            <option value="chem250">Chem250</option>
-                            <option value="magic_state">Magic-State 15-to-1</option>
-                            <option value="q100">Q100</option>
-                            <option value="shor1024">Shor1024</option>
-                            <option value="shor4096">Shor4096</option>
-                          </select>
+                        <select id="select_experiments" name="select_experiments" size="5" style="width:200px">
+                        </select>
             </div>
             <div id="controls" style="font-size:10pt; overflow: hidden; margin-bottom: 20px;">
                     <div class="inputcontainer">
@@ -149,6 +141,7 @@
             </div>
 
         <script>
+
             function mouseOut(){
                 var output = document.getElementById("console");
                 output.innerHTML = "";
@@ -158,7 +151,6 @@
             function mouseOver(HTML_content){
                 var output = document.getElementById("console");
                 output.style.visibility = "visible";
-                //console.log(HTML_content);
                 output.innerHTML = HTML_content;
             }
 
@@ -211,7 +203,7 @@
                 output3.innerHTML = phys_err_rate_input.value; // Display the default slider value
                 
                 var output4 = document.getElementById("value_distance");
-                output4.innerHTML = phys_err_rate_input.value; // Display the default slider value
+                output4.innerHTML = distance_input.value; // Display the default slider value
 
             }
 
@@ -222,6 +214,8 @@
                 var phys_err_rate_input = document.getElementById("input_err_field");
                 var force_distance_input = document.getElementById("input_force_distance");
                 var distance_input = document.getElementById("input_distance_field");
+
+                var select_experiments_input = document.getElementById("select_experiments");
 
                 update_labels();
 
@@ -250,23 +244,50 @@
                 }
 
                 // Update the current slider value (each time you drag the slider handle)
-                phys_err_rate_input.onchange = function() {
+                distance_input.onchange = function() {
                     enforced_distance = this.value;
+                    if(bool_enforced_distance){
+                        update_plots();
+                    }
+                }
+
+                select_experiments_input.onchange = function() {
+                    experiment = experiments[this.value];
+                    console.log(experiment)
+                    volume_min = experiment.volume;
+                    space_min = experiment.footprint;
+                    safety_factor = experiment.safety_factor;
+                    bool_enforced_distance = experiment.bool_distance;
+                    enforced_distance = experiment.enforced_distance;
+                    phys_error_rate = experiment.physical_error_rate;
                     update_plots();
+                }
+            }
+            function add_options_to_select(){
+                select = document.getElementById('select_experiments');
+                for(var name in experiments){
+                    var opt = document.createElement('option');
+                    opt.value = name;
+                    opt.innerHTML = name;
+                    select.appendChild(opt);
                 }
             }
         </script>
 
         <script>
+            //add all options
+            add_options_to_select();
+
             add_event_handlers();
 
             plot_names = [ ".plot1", ".plot2", ".plot3", ".plot4"];
-            //plot_names = [".plot5"];
 
-            plot_objects[".plot1"] = new Schneegloeckchen(".plot1", vis_options, "a18");
-            plot_objects[".plot2"] = new Maigloeckchen(".plot2", vis_options, "a18");
-            plot_objects[".plot3"] = new Loewenzahn(".plot3", vis_options, "a18");
-            plot_objects[".plot4"] = new Gaensebluemchen(".plot4", vis_options, "a18");
+            //plot_names = [".plot3"];
+
+            plot_objects[".plot1"] = new Gaensebluemchen(".plot1", vis_options, "a18");
+            plot_objects[".plot2"] = new Schneegloeckchen(".plot2", vis_options, "a18");
+            plot_objects[".plot3"] = new Maigloeckchen(".plot3", vis_options, "a18");
+            plot_objects[".plot4"] = new Loewenzahn(".plot4", vis_options, "a18");
             //plot_objects[".plot5"] = new Schneegloeckchen(".plot1", vis_options, "a12"); //old estimation method
 
             for(var index in plot_names)

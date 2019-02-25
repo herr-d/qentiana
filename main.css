@@ -45,10 +45,9 @@ path {
 }
 
 .chart {
-  border-style: dotted;
-  border-width: 5px;
-  border-color: #1a2e58;
+  margin: 10px;
   width: 450px;
+  height: 600px;
 }
 
 .description{

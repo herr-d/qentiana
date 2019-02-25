@@ -48,14 +48,6 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters["scaling_factor"] = experiment.routing_overhead;
 
-    //this.parameters["bool_distance"] = experiment.bool_distance;
-
-    //this.parameters["distance"] = 15;
-    if(experiment.bool_distance)
-    {
-        this.parameters["distance"] = experiment.enforced_distance;
-    }
-
     this.parameters["bool_add_bus_qubits"] = true;
 
     this.parameters["___phys_err_rate"] = 0;
@@ -320,7 +312,7 @@ Gaensebluemchen.prototype.init_visualisation = function() {
 
     svg.append("text")
         .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")") // centre below axis
+        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (2*ref.options.margin.bottom)) + ")") // centre below axis
         .text("Volume Factor");
 
 

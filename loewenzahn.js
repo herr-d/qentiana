@@ -110,11 +110,7 @@ Loewenzahn.prototype.color_interpretation = function(d) {
 }
 
 Loewenzahn.prototype.init_visualisation = function() {
-    /*
-        D3
-    */
     var ref = this;
-    // console.log(ref);
     var svg = d3.select(ref.plot_name)
         .append("svg")
         .attr("width", ref.options.width + ref.options.margin.left + ref.options.margin.right)
@@ -156,14 +152,13 @@ Loewenzahn.prototype.init_visualisation = function() {
 
     svg.append("g")
         .attr("class", "y axis")
-        .attr("transform", "translate(0, " + (ref.options.cellSize / 2) + ")")
         .call(ref.yAxis)
         .selectAll('text')
         .attr('font-weight', 'normal');
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + (ref.options.cellSize / 2) + ", " + (ref.global_v.length + 1) * ref.options.itemSize + ")")
+        .attr("transform", "translate(0, " + (ref.global_v.length + 2) * ref.options.itemSize + ")")
         .call(ref.xAxis)
         .selectAll('text')
         .attr('font-weight', 'normal')
@@ -203,7 +198,7 @@ Loewenzahn.prototype.init_visualisation = function() {
 
     svg.append("text")
         .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
-        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (ref.options.margin.bottom / 2)) + ")") // centre below axis
+        .attr("transform", "translate(" + (movex / 2) + "," + (movey + (2* ref.options.margin.bottom)) + ")") // centre below axis
         .text("Space Factor");
 }
 
