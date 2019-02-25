@@ -8,6 +8,7 @@
         <!-- External libraries-->
         <script src="https://d3js.org/d3.v3.js"></script>
         <script src="https://cdn.jsdelivr.net/g/filesaver.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 
         <!-- Local files-->
         <script src="utilities.js"></script>
@@ -114,7 +115,7 @@
                     </div>
                     <div class="inputcontainer">
                         per cycle error: <div id="value_error"></div>
-                        <input type="number" min="0" value="0.000" step="0.0002" id="input_err_field" class="input">
+                        <input type="number" min="0" value="0.0000" step="0.0002" id="input_err_field" class="input">
                     </div>
                     <div class="inputcontainer">
                         <input type="checkbox" id="input_force_distance" style="margin-bottom: 15px">
@@ -184,9 +185,6 @@
                 var force_distance_input = document.getElementById("input_force_distance");
                 var distance_input = document.getElementById("input_distance_field");
 
-                /*
-                    Configure default values
-                */
                 volume_input.value = volume_min;
                 logical_qubits_input.value = space_min;
                 phys_err_rate_input.value = phys_error_rate;
@@ -194,16 +192,16 @@
                 distance_input.value = enforced_distance;
 
                 var output1 = document.getElementById("value_volume");
-                output1.innerHTML = volume_input.value; // Display the default slider value
+                output1.innerHTML = volume_input.value;
 
                 var output2 = document.getElementById("value_qubits");
-                output2.innerHTML = logical_qubits_input.value; // Display the default slider value
+                output2.innerHTML = logical_qubits_input.value;
 
                 var output3 = document.getElementById("value_error");
-                output3.innerHTML = phys_err_rate_input.value; // Display the default slider value
+                output3.innerHTML = phys_err_rate_input.value;
                 
                 var output4 = document.getElementById("value_distance");
-                output4.innerHTML = distance_input.value; // Display the default slider value
+                output4.innerHTML = distance_input.value;
 
             }
 
@@ -233,7 +231,8 @@
 
                 // Update the current slider value (each time you drag the slider handle)
                 phys_err_rate_input.onchange = function() {
-                    phys_error_rate_input = this.value;
+                    phys_error_rate = this.value;
+                    console.log(phys_error_rate)
                     update_plots();
                 }
 

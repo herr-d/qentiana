@@ -1,4 +1,7 @@
-/* styling of input elements */
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
 .inputcontainer {
   width: 250px; /* Width of the outside container */
   float: left;
@@ -52,8 +55,9 @@ path {
 
 .description{
   font-size: 9pt;
+  text-align: justify; 
   color: #1a2e58;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Roboto', sans-serif;
 }
 
 .vertical_line{
@@ -82,4 +86,5 @@ path {
   height: 250px;
   width: 300px;
   visibility: "hidden";
+  font-family: 'Roboto', sans-serif;
 }
