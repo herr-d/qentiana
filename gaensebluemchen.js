@@ -46,8 +46,6 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters["bool_update_plot"] = true;
 
-    this.parameters["scaling_factor"] = experiment.routing_overhead;
-
     this.parameters["bool_add_bus_qubits"] = true;
 
     this.parameters["___phys_err_rate"] = 0;
@@ -68,7 +66,7 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 }
 
 Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, space_min, p_err) {
-    var factor = (100 + this.parameters["scaling_factor"]) / 100;
+    var factor = (100 + routing_overhead) / 100;
 
     var data = new Array(); // stores the line plot for no physical qubits
     var dist_changes = new Array(); // stores the volume factors for which the distance changes
@@ -270,7 +268,6 @@ Gaensebluemchen.prototype.draw_line_plot = function(data) {
     d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class", "line_plot_red").attr("d", line2(data));
     // d3.select("#plotsvg" + ref.plot_name.replace(".", "")).append("svg:path").attr("class","line_plot").attr("d", line1(data));
 }
-
 
 Gaensebluemchen.prototype.init_visualisation = function() {
     var ref = this;

@@ -69,7 +69,8 @@ experiments["Bristlecone"] = {
     //params to the chart classes
     routing_overhead: 200,
     bool_distance: false,
-    enforced_distance: -1
+    enforced_distance: -1,
+    safety_factor: 99
 };
 
 experiments["15-to-1 Distillation"] = {

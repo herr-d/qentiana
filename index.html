@@ -33,6 +33,7 @@
             var volume_min = experiment.volume;
             var space_min = experiment.footprint;
             var safety_factor = experiment.safety_factor;
+            var routing_overhead = experiment.routing_overhead;
             var bool_enforced_distance = experiment.bool_distance;
             var enforced_distance = experiment.enforced_distance;
             var phys_error_rate = experiment.physical_error_rate;
@@ -122,6 +123,11 @@
                         Use Fixed Distance <div id="value_distance"></div>
                         <input type="number" min="5" value="0" step="1" id="input_distance_field" class="input">
                     </div>
+                    <div class="inputcontainer">
+                        scaling factor (in percent): <div id="routing_overhead"></div>
+                        <input type="number" min="-99" value="50" step="1" id="input_routing_overhead" class="input">
+                    </div>
+
             </div>
         </div>
         <div class="controlbox" style="overflow: hidden;">
@@ -184,12 +190,14 @@
                 var phys_err_rate_input = document.getElementById("input_err_field");
                 var force_distance_input = document.getElementById("input_force_distance");
                 var distance_input = document.getElementById("input_distance_field");
+                var routing_overhead_input = document.getElementById("input_routing_overhead");
 
                 volume_input.value = volume_min;
                 logical_qubits_input.value = space_min;
                 phys_err_rate_input.value = phys_error_rate;
                 force_distance_input.checked = bool_enforced_distance;
                 distance_input.value = enforced_distance;
+                routing_overhead_input.value = routing_overhead;
 
                 var output1 = document.getElementById("value_volume");
                 output1.innerHTML = volume_input.value;
@@ -203,6 +211,8 @@
                 var output4 = document.getElementById("value_distance");
                 output4.innerHTML = distance_input.value;
 
+                var output5 = document.getElementById("routing_overhead");
+                output5.innerHTML = routing_overhead_input.value;
             }
 
             function add_event_handlers()
@@ -212,6 +222,7 @@
                 var phys_err_rate_input = document.getElementById("input_err_field");
                 var force_distance_input = document.getElementById("input_force_distance");
                 var distance_input = document.getElementById("input_distance_field");
+                var routing_overhead_input = document.getElementById("input_routing_overhead");
 
                 var select_experiments_input = document.getElementById("select_experiments");
 
@@ -250,10 +261,16 @@
                     }
                 }
 
+                routing_overhead_input.onchange = function() {
+                    routing_overhead = this.value;
+                    update_plots();
+                }
+
                 select_experiments_input.onchange = function() {
                     experiment = experiments[this.value];
                     console.log(experiment)
                     volume_min = experiment.volume;
+                    routing_overhead = experiment.routing_overhead;
                     space_min = experiment.footprint;
                     safety_factor = experiment.safety_factor;
                     bool_enforced_distance = experiment.bool_distance;
