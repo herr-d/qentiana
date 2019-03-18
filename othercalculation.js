@@ -33,11 +33,7 @@ function calc_distance(p_err_out, p_cycle, spacetime_volume) {
 
 function number_of_physical_qubits(distance, space) {
     // first two because there are data and measurement qubits 
-    return (2 * space) * distance * distance;
-}
-
-function worst_case_number_of_bus_qubits(distance, space) {
-    // first two because there are data and measurement qubits 
-    // second two because there are two lines per patch
-    return (2 * space) * (distance * 2 + 1);
+    var tmp = (2 * space) * distance * distance;
+    //add qubits on the boundary
+    return tmp + (2 * space) * (distance * 2 + 1);
 }

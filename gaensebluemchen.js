@@ -46,8 +46,6 @@ function Gaensebluemchen(name, vis_options, estimation_method) {
 
     this.parameters["bool_update_plot"] = true;
 
-    this.parameters["bool_add_bus_qubits"] = true;
-
     this.parameters["___phys_err_rate"] = 0;
     this.parameters["___default_phys_err_rate"] = phys_error_rate;
     
@@ -74,9 +72,6 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
     var dist_last = -1;
     var volume_param = 0;
     var ret = 0;
-
-    // var add_worst_case_bus_qubits = true;
-    var add_worst_case_bus_qubits = this.parameters["bool_add_bus_qubits"];
 
     for (var i = 0; i < this.x_axis_values.length; i++) {
         volume_param = approx_mult_factor(volume_min, this.x_axis_values[i]);
@@ -109,9 +104,6 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
         var iterations = 0;
         var increased_distance = ret_vol_2.dist;
         var qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-        if (add_worst_case_bus_qubits) {
-            qubits_inc_dist += worst_case_number_of_bus_qubits(increased_distance, space_2);
-        }
 
         var bus_last_p_logical = -1;
         var bus_curr_p_logical = -1;
@@ -149,9 +141,6 @@ Gaensebluemchen.prototype.gen_data = function(total_failure_rate, volume_min, sp
                     volume_param);
 
                 qubits_inc_dist = number_of_physical_qubits(increased_distance, space_2);
-                if (add_worst_case_bus_qubits) {
-                    qubits_inc_dist += worst_case_number_of_bus_qubits(increased_distance, space_2);
-                }
             }
         }
 
