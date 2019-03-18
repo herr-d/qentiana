@@ -33,7 +33,8 @@ function calc_distance(p_err_out, p_cycle, spacetime_volume) {
 
 function number_of_physical_qubits(distance, space) {
     // first two because there are data and measurement qubits 
-    var tmp = (2 * space) * distance * distance;
-    //add qubits on the boundary
-    return tmp + (2 * space) * (distance * 2 + 1);
+    var tmp = space * (2*distance * distance - 1);
+    
+    //add qubits on two boundaries (e.g. bottom, right)
+    return tmp + 2 * space * (distance * 2 + 1);
 }
